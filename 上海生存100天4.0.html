@@ -1,0 +1,2298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>上海生存100天 · 沪漂倒爷模拟器 v4.04</title>
+<style>
+  :root{
+    --bg:#0b1220; --bg2:#0f1a2e; --card:#152238; --card2:#1b2b47;
+    --line:#25395e; --txt:#dbe7ff; --dim:#8ea3c8;
+    --neon:#ff5f9e; --cyan:#37e0ff; --gold:#ffd166; --green:#4ade80; --red:#ff6b6b;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:
+      repeating-linear-gradient(0deg, rgba(55,224,255,.03) 0 2px, transparent 2px 4px),
+      radial-gradient(1200px 600px at 80% -10%, rgba(55,224,255,.12), transparent 60%),
+      radial-gradient(900px 500px at 10% 110%, rgba(255,95,158,.10), transparent 60%),
+      var(--bg);
+    color:var(--txt);
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+    display:flex; justify-content:center; padding:10px;
+    image-rendering:pixelated;
+  }
+  #app{width:100%; max-width:560px; height:100%; display:flex; flex-direction:column;}
+  .screen{display:none; flex:1; flex-direction:column; min-height:0;}
+  .screen.active{display:flex;}
+  h1{font-size:26px; letter-spacing:3px; text-align:center; margin:8px 0 2px;}
+  .sub{text-align:center; color:var(--dim); font-size:12px; margin-bottom:12px;}
+  .neon-t{color:var(--cyan); text-shadow:3px 3px 0 rgba(0,60,80,.6);}
+  .neon-p{color:var(--neon); text-shadow:3px 3px 0 rgba(80,0,40,.6);}
+  button{
+    font-family:inherit; cursor:pointer; border:2px solid var(--line);
+    background:var(--card2); color:var(--txt); border-radius:0;
+    box-shadow:3px 3px 0 rgba(0,0,0,.5); transition:.08s transform,.08s box-shadow;
+  }
+  button:active{transform:translate(2px,2px); box-shadow:1px 1px 0 rgba(0,0,0,.5);}
+  button:disabled{opacity:.38; cursor:not-allowed;}
+  .tag{display:inline-block; font-size:11px; padding:2px 8px; border:1px solid var(--line); color:var(--dim); margin:2px 3px 2px 0;}
+  canvas{image-rendering:pixelated; image-rendering:crisp-edges;}
+
+  #start-screen{align-items:center; justify-content:flex-start; gap:10px; overflow-y:auto; padding-bottom:20px;}
+  #shikumen{width:100%; max-width:420px; border:2px solid var(--line); box-shadow:5px 5px 0 rgba(0,0,0,.5); background:#0a0f1e;}
+  .logo-sub{font-size:11px; letter-spacing:6px; color:var(--dim); text-align:center;}
+  #metro-mini{width:100%; border:2px solid var(--line); background:#0d1626; box-shadow:3px 3px 0 rgba(0,0,0,.5); padding:4px;}
+  #metro-mini svg{width:100%; max-width:420px; height:auto; display:block; margin:0 auto;}
+  #metro-full{width:100%; background:#0d1626; border:1px solid #1d2f4d; padding:6px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);}
+  #metro-full svg{width:100%; max-width:720px; height:auto; display:block; margin:0 auto;}
+  .metro-cap{font-size:11px; color:var(--dim); text-align:center; padding:4px 0 2px;}
+  #start-btn{
+    margin-top:4px; padding:14px 0; width:100%; font-size:17px; font-weight:700;
+    background:linear-gradient(90deg,var(--neon),#b06bff); border:none; letter-spacing:4px;
+    box-shadow:4px 4px 0 rgba(0,0,0,.55);
+  }
+
+  #loc-banner{display:flex; gap:10px; align-items:center; padding:6px 2px 8px;}
+  #loc-scene{width:120px; height:75px; flex:none; border:2px solid var(--line); background:#0a0f1e;}
+  #loc-name{font-size:16px; font-weight:800;}
+  #loc-lines{margin-top:4px; display:flex; flex-wrap:wrap;}
+  .line-chip{display:inline-flex; align-items:center; gap:4px; font-size:10px; padding:1px 7px; border:1px solid var(--line); color:var(--txt); margin-right:4px;}
+  .line-chip i{width:8px; height:8px; display:inline-block;}
+  #hud{display:flex; justify-content:space-between; align-items:baseline; padding:0 2px 8px;}
+  #hud .day{font-size:18px; font-weight:800;}
+  #hud .phase{color:var(--gold); font-size:12px; border:1px solid rgba(255,209,102,.35); padding:2px 10px;}
+  #hud .cash{font-size:18px; font-weight:800; color:var(--green); font-variant-numeric:tabular-nums;}
+
+  #bars{display:grid; grid-template-columns:1fr 1fr; gap:6px 14px; margin-bottom:8px;}
+  .bar-row{display:flex; align-items:center; gap:8px; font-size:12px;}
+  .bar-row .lab{width:56px; color:var(--dim); flex:none;}
+  .bar{flex:1; height:10px; background:#0a1425; border:1px solid #1d2f4d; position:relative;}
+  .bar i{display:block; height:100%; transition:width .35s;
+    background-image:repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 2px, transparent 2px 6px);}
+  .bar-row .val{width:34px; text-align:right; font-variant-numeric:tabular-nums; color:var(--dim);}
+  .f-health i{background-color:#4ade80;}
+  .f-food i{background-color:#fbbf24;}
+  .f-mood i{background-color:#ff5f9e;}
+  .f-energy i{background-color:#37e0ff;}
+  .f-skill i{background-color:#c084fc;}
+  .f-san i{background:linear-gradient(90deg,#a855f7,#06b6d4);}
+  .f-san.san-warn .lab{color:#f59e0b;}
+  .f-san.san-warn i{filter:brightness(1.2) saturate(1.4);}
+  .f-san.san-danger{animation:sanPulse 1s ease-in-out infinite;}
+  .f-san.san-danger .lab{color:#ef4444;}
+  @keyframes sanPulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+  .c-san{color:#a855f7;}
+  .bar-row.gold .lab{color:var(--gold);}
+
+  #biz-status{display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap;}
+  .biz-t{font-size:11px; padding:3px 9px; border:1px solid var(--line); color:var(--dim);}
+  .biz-t.on{color:var(--gold); border-color:rgba(255,209,102,.5);}
+  .biz-t.warn{color:var(--red); border-color:rgba(255,107,107,.45);}
+  #log{
+    flex:1; min-height:70px; overflow-y:auto; background:var(--bg2);
+    border:2px solid var(--line); padding:10px 12px;
+    font-size:13px; line-height:1.75; margin-bottom:10px;
+    box-shadow:inset 3px 3px 0 rgba(0,0,0,.35);
+  }
+  #log::-webkit-scrollbar{width:6px;}
+  #log::-webkit-scrollbar-thumb{background:var(--line);}
+  #log .t{color:var(--dim); font-size:11px; margin-top:8px;}
+  #log .t:first-child{margin-top:0;}
+  .c-good{color:var(--green);} .c-bad{color:var(--red);} .c-gold{color:var(--gold);}
+  .c-cyan{color:var(--cyan);} .c-dim{color:var(--dim);} .c-pink{color:var(--neon);}
+
+  #actions{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .act{display:flex; flex-direction:column; gap:3px; padding:10px 12px; text-align:left;}
+  .act .top{display:flex; justify-content:space-between; align-items:baseline;}
+  .act .name{font-weight:700; font-size:13px;}
+  .act .cost{font-size:11px; color:var(--cyan); flex:none;}
+  .act .desc{font-size:11px; color:var(--dim); line-height:1.5;}
+  .act.locked{border-style:dashed; box-shadow:none;}
+  .act.travel{border-color:rgba(55,224,255,.6); background:linear-gradient(90deg,rgba(55,224,255,.10),rgba(21,34,56,1));}
+  .act.market{border-color:rgba(255,209,102,.55); background:linear-gradient(90deg,rgba(255,209,102,.10),rgba(21,34,56,1));}
+  .home-label{font-size:12px; color:var(--dim); width:100%; text-align:left; line-height:1.7;}
+  .home-list{display:flex; flex-direction:column; gap:8px; width:100%;}
+  .home-card{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 14px; width:100%; text-align:left;}
+  .home-card.sel{border-color:var(--neon); box-shadow:3px 3px 0 rgba(255,95,158,.35);}
+  .home-card .hname{font-size:15px; font-weight:700;}
+  .home-card .hdesc{font-size:11px; color:var(--dim); margin-top:2px;}
+  .home-card .hprice{flex:none; text-align:right; font-size:11px; color:var(--dim); line-height:1.6;}
+  .home-card .hprice b{font-size:13px; color:var(--gold);}
+  .act.final{grid-column:1/-1; border-color:rgba(255,209,102,.5); background:linear-gradient(90deg,rgba(255,209,102,.10),rgba(255,95,158,.10));}
+  .sys-row{display:flex; gap:8px; margin-top:8px;}
+  .sys-row button{flex:1; font-size:12px; padding:8px 0; color:var(--dim);}
+
+  #end-screen{align-items:center; justify-content:center; text-align:center; gap:14px; padding:20px 0; overflow-y:auto;}
+  #end-emoji{font-size:64px;}
+  #end-title{font-size:24px; font-weight:800;}
+  #end-desc{color:var(--dim); font-size:14px; line-height:1.9; max-width:420px;}
+  #end-stats{width:100%; max-width:420px; background:var(--bg2); border:2px solid var(--line);
+    padding:12px 16px; font-size:13px; line-height:2; text-align:left; box-shadow:4px 4px 0 rgba(0,0,0,.4);}
+  #end-stats b{float:right; font-variant-numeric:tabular-nums;}
+  #restart{padding:14px 40px; font-size:16px; font-weight:700; letter-spacing:4px;
+    background:linear-gradient(90deg,var(--cyan),#5eead4); border:none; color:#06202a; box-shadow:4px 4px 0 rgba(0,0,0,.5);}
+
+  .modal-mask{position:fixed; inset:0; background:rgba(4,8,18,.82); z-index:50;
+    display:none; align-items:center; justify-content:center; padding:14px;}
+  .modal-mask.show{display:flex;}
+  .modal{width:100%; max-width:520px; max-height:92vh; overflow-y:auto; background:var(--bg2);
+    border:3px solid var(--cyan); box-shadow:6px 6px 0 rgba(0,0,0,.6); padding:14px;}
+  .modal h3{font-size:16px; margin-bottom:4px;}
+  .modal .m-sub{font-size:11px; color:var(--dim); margin-bottom:10px; line-height:1.6;}
+  .modal svg{width:100%; height:auto; display:block; background:#0d1626; border:2px solid var(--line);}
+  .st-name{font-size:11px; fill:#f8fafc; font-weight:600;
+    paint-order:stroke; stroke:#0d1626; stroke-width:3px; stroke-linejoin:round;}
+  .st-dot{cursor:pointer;}
+  .st-dot .st-hit{fill:transparent;}
+  .st-dot:hover .st-hit{fill:rgba(255,209,102,.22);}
+  .st-dot:hover .st-core{fill:#ffd166 !important; stroke:#fff !important; filter:drop-shadow(0 0 4px #ffd166);}
+  .st-dot:hover .st-name{fill:#ffd166 !important;}
+  .st-pulse{transform-origin:center; transform-box:fill-box; animation:stPulse 1.6s ease-in-out infinite;}
+  @keyframes stPulse{0%,100%{opacity:.55;}50%{opacity:0;}}
+  #metro-info{min-height:56px; border:1px dashed var(--line); padding:10px 12px; font-size:13px; line-height:1.7; color:var(--dim); margin-top:10px; background:rgba(255,255,255,.02);}
+  #metro-info b{color:var(--txt);}
+  .m-close{margin-top:12px; width:100%; padding:10px 0; font-size:14px;}
+  .legend{display:flex; flex-wrap:wrap; gap:8px 14px; margin-top:10px; padding-top:8px; border-top:1px dashed var(--line); font-size:12px; color:var(--dim);}
+  .legend span{display:inline-flex; align-items:center; gap:5px;}
+  .legend i{width:18px; height:6px; display:inline-block; border-radius:2px; box-shadow:0 0 4px currentColor;}
+
+  .good-row{border:2px solid var(--line); padding:8px 10px; margin-bottom:8px; background:var(--card);}
+  .good-row.hot{border-color:rgba(255,209,102,.7);}
+  .g-top{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap;}
+  .g-name{font-weight:700; font-size:14px;}
+  .g-price{color:var(--gold); font-weight:700; font-size:14px; font-variant-numeric:tabular-nums;}
+  .g-meta{font-size:11px; color:var(--dim); margin:3px 0 6px; line-height:1.6;}
+  .g-btns{display:flex; gap:6px;}
+  .g-btns button{flex:1; font-size:12px; padding:6px 0;}
+  .g-btns button.buy{border-color:rgba(74,222,128,.5); color:var(--green);}
+  .g-btns button.sell{border-color:rgba(255,107,107,.5); color:var(--red);}
+  .no-buy{font-size:11px; color:var(--dim); display:inline-flex; align-items:center; line-height:1.6;}
+  .inv-bar{font-size:12px; color:var(--dim); margin-bottom:10px; border:1px dashed var(--line); padding:6px 10px;}
+  .inv-bar b{color:var(--gold);}
+
+  #toast{position:fixed; left:50%; top:18px; transform:translateX(-50%) translateY(-140%);
+    background:#122b45; color:#fff; border:2px solid var(--cyan);
+    padding:10px 18px; font-size:13px; z-index:99;
+    transition:transform .3s; max-width:90vw; box-shadow:4px 4px 0 rgba(0,0,0,.5);}
+  #toast.show{transform:translateX(-50%) translateY(0);}
+
+  /* ===== 行情短信提醒 ===== */
+  #sms-box{position:fixed; right:14px; top:60px; z-index:98; display:flex;
+    flex-direction:column; gap:8px; width:min(300px,80vw); pointer-events:none;}
+  .sms-item{background:#0e2136; border:1.5px solid var(--cyan); color:#e8f2ff;
+    padding:9px 12px; font-size:12px; line-height:1.7;
+    box-shadow:4px 4px 0 rgba(0,0,0,.45); animation:smsIn .35s ease;}
+  .sms-item.out{animation:smsOut .3s ease forwards;}
+  .sms-head{font-size:10px; color:var(--cyan); letter-spacing:1px; margin-bottom:3px;
+    display:flex; justify-content:space-between; border-bottom:1px dashed rgba(55,224,255,.3); padding-bottom:3px;}
+  @keyframes smsIn{from{transform:translateX(120%); opacity:0;} to{transform:none; opacity:1;}}
+  @keyframes smsOut{to{transform:translateX(120%); opacity:0;}}
+
+  /* ===== 我的摆摊过程小游戏 ===== */
+  #stall-overlay{position:fixed; inset:0; z-index:90; display:none; align-items:center; justify-content:center;
+    background:rgba(4,9,18,.92); padding:14px;}
+  .stall-box{width:min(92vw,420px); background:var(--card); border:2px solid var(--line);
+    padding:16px; box-shadow:0 20px 60px rgba(0,0,0,.6);}
+  .stall-head{display:flex; justify-content:space-between; align-items:center; gap:10px;}
+  .stall-title{font-weight:800; font-size:15px;}
+  .stall-progress{position:relative; width:168px; height:14px;
+    background:linear-gradient(90deg, rgba(74,222,128,.22) 0 50%, rgba(255,209,102,.30) 50% 85%, rgba(255,107,107,.35) 85% 100%);}
+  .sp-fill{position:absolute; left:0; top:0; bottom:0; width:0; transition:width .08s linear;}
+  .sp-fill.g{background:linear-gradient(90deg,#34d399,#4ade80);}
+  .sp-fill.y{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+  .sp-fill.r{background:linear-gradient(90deg,#ef4444,#ff6b6b);}
+  .sp-tick{position:absolute; top:-3px; bottom:-3px; width:1px; background:rgba(255,255,255,.55);}
+  .t50{left:50%} .t85{left:85%}
+  .stall-alert{display:none; margin-top:10px; text-align:center; color:var(--red); font-weight:800;
+    font-size:16px; letter-spacing:1px; animation:blink .35s infinite alternate;}
+  @keyframes blink{from{opacity:.35}to{opacity:1}}
+  .stall-box.shake{animation:boxshake .28s infinite;}
+  @keyframes boxshake{0%,100%{transform:translate(0,0)}25%{transform:translate(-4px,2px)}50%{transform:translate(4px,-2px)}75%{transform:translate(-3px,-2px)}}
+  .stall-scene{position:relative; height:170px; margin-top:12px;
+    background:linear-gradient(180deg,#152238,#0b1426); border:2px solid var(--line); overflow:hidden;}
+  .stall-scene.alert{border-color:#ff4d4d; box-shadow:inset 0 0 28px rgba(255,77,77,.55);}
+  .stall-cart{position:absolute; left:50%; bottom:12px; font-size:54px;
+    animation:cartbounce 1.2s ease-in-out infinite;}
+  @keyframes cartbounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-8px)}}
+  #sp-canvas{position:absolute; left:50%; bottom:6px; transform:translateX(-50%);
+    image-rendering:pixelated; image-rendering:crisp-edges;}
+  /* ===== 自定义定价卖出 ===== */
+  .g-btns button.psell{border-color:rgba(255,209,102,.5); color:var(--gold);}
+  .csell-box{display:flex; gap:6px; align-items:center; flex:1;}
+  .csell-box input{flex:1; min-width:0; width:60px; background:#0a1425; border:1px solid var(--line);
+    color:var(--txt); padding:6px 8px; font-family:inherit; font-size:12px;}
+  .csell-box .hintp{font-size:10px; color:var(--dim); white-space:nowrap;}
+  /* ===== 家乡选择列表 ===== */
+  .home-row{display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:10px 14px; border:2px solid var(--line); background:var(--card2);
+    box-shadow:3px 3px 0 rgba(0,0,0,.5); cursor:pointer; width:100%;}
+  .home-row:has(input:checked){border-color:var(--neon); box-shadow:3px 3px 0 rgba(255,95,158,.35);}
+  .home-row input{accent-color:#ff5f9e;}
+  .home-icon{font-size:18px;}
+  .home-name{font-size:15px; font-weight:700; flex:1; text-align:left;}
+  .home-cost{font-size:11px; color:var(--dim); text-align:right;}
+  .sp-float{position:absolute; font-size:14px; font-weight:700; color:var(--green); pointer-events:none;
+    animation:floatup 1.6s ease-out forwards; white-space:nowrap;}
+  @keyframes floatup{from{opacity:1; transform:translateY(0)}to{opacity:0; transform:translateY(-46px)}}
+  .sp-walk{position:absolute; left:-36px; font-size:20px; pointer-events:none; animation:walkacross linear forwards;}
+  @keyframes walkacross{from{transform:translateX(0)}to{transform:translateX(500px)}}
+  .stall-money{margin-top:12px; font-size:14px; text-align:center;}
+  .stall-money b{color:var(--gold); font-size:20px; font-variant-numeric:tabular-nums;}
+  .stall-money .sp-total{color:var(--dim); font-size:12px;}
+  .stall-hint{font-size:11px; color:var(--dim); text-align:center; margin-top:4px; line-height:1.6;}
+  #sp-flee{margin-top:12px; width:100%; padding:14px 0; font-size:16px; font-weight:800; letter-spacing:2px;
+    border:none; background:linear-gradient(90deg,#f59e0b,#ffd166); color:#3a2500;}
+  #sp-flee:disabled{background:var(--card2); color:var(--dim); border:1px dashed var(--line); font-weight:400;}
+
+  /* ===== 我的通用小游戏 ===== */
+  #mg-overlay{position:fixed; inset:0; z-index:80; display:none; align-items:center; justify-content:center;
+    background:rgba(4,9,18,.92); padding:14px;}
+  .mg-box{width:min(92vw,420px); background:var(--card); border:2px solid var(--line);
+    padding:16px; box-shadow:0 20px 60px rgba(0,0,0,.6); text-align:center;}
+  .mg-head{display:flex; justify-content:space-between; align-items:center; gap:10px;}
+  .mg-title{font-weight:800; font-size:15px;}
+  .mg-round{font-size:12px; color:var(--gold); border:1px solid rgba(255,209,102,.35);
+    padding:2px 10px; white-space:nowrap;}
+  .mg-stage{margin-top:6px; min-height:120px;}
+  .mg-hint{font-size:11px; color:var(--dim); line-height:1.6; margin-top:8px; text-align:center;}
+  #mg-btn{margin-top:12px; width:100%; padding:14px 0; font-size:16px; font-weight:800; letter-spacing:2px;
+    border:none; background:linear-gradient(90deg,var(--cyan),#5eead4); color:#06202a;}
+  #mg-btn:disabled{background:var(--card2); color:var(--dim); border:1px dashed var(--line); font-weight:400;}
+  .mg-track{position:relative; height:22px;
+    background:#0a1425; overflow:hidden; margin-top:24px; cursor:pointer; border:1px solid var(--line);}
+  .mg-zone{position:absolute; top:0; bottom:0;}
+  .mg-zone.y{background:rgba(255,209,102,.28);}
+  .mg-zone.g{background:rgba(74,222,128,.40);}
+  .mg-needle{position:absolute; top:-2px; bottom:-2px; width:3px; background:#fff;
+    box-shadow:0 0 10px rgba(255,255,255,.9);}
+  .mg-emoji{font-size:54px; margin:14px 0 4px; animation:cartbounce 1.2s ease-in-out infinite;}
+  .mg-verdict{height:22px; font-weight:800; font-size:15px; margin-top:10px;}
+  .mg-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:12px;}
+  .mg-cell{height:74px; background:var(--bg2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700;
+    cursor:pointer;}
+  .mg-cell.pop{animation:cellpop .18s;}
+  @keyframes cellpop{from{transform:scale(1.18)}to{transform:scale(1)}}
+  .mg-cell.good{background:rgba(74,222,128,.25); border-color:var(--green);}
+  .mg-cell.bad{background:rgba(255,107,107,.25); border-color:var(--red);}
+  .mg-score{margin-top:10px; font-size:13px;}
+  .mg-score b{color:var(--gold); font-size:18px; font-variant-numeric:tabular-nums;}
+  .mg-timebar{height:6px; background:#0a1425; overflow:hidden; margin-top:8px; border:1px solid #1d2f4d;}
+  .mg-timebar i{display:block; height:100%; background:linear-gradient(90deg,#37e0ff,#5eead4); transition:width .1s linear;}
+  .mg-q{font-size:26px; font-weight:800; margin:18px 0 12px; font-variant-numeric:tabular-nums; letter-spacing:1px;}
+  .mg-opts{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .mg-opt{padding:14px 0; font-size:19px; font-weight:700;}
+  .mg-opt.right{background:rgba(74,222,128,.25); border-color:var(--green);}
+  .mg-opt.wrong{background:rgba(255,107,107,.25); border-color:var(--red);}
+
+  @media (max-width:400px){
+    #actions{grid-template-columns:1fr;}
+    h1{font-size:22px;}
+    #loc-scene{width:96px; height:60px;}
+    .mg-cell{height:62px; font-size:24px;}
+    .mg-q{font-size:22px;}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="start-screen" class="screen active">
+    <div>
+      <div class="logo-sub">M O D U · 2 0 4 9</div>
+      <h1><span class="neon-t">上海</span>生存<span class="neon-p">100天</span></h1>
+      <div class="sub">沪漂倒爷模拟器 · 跑遍魔都倒货，你能撑过100天吗？</div>
+    </div>
+    <canvas id="shikumen" width="96" height="72"></canvas>
+    <div class="metro-cap">▲ 你在上海新家的门口 —— 一栋石库门</div>
+    <div id="metro-mini"></div>
+    <div class="metro-cap">上海地铁 · 游戏简化版线路图（仅标注知名地点）</div>
+    <div class="home-label">① 选择你的家乡 —— 距离越远，来沪车票越贵，难度越高</div>
+    <div class="home-list" id="home-list"></div>
+    <div class="home-label" style="margin-top:6px;">② 你带了 ¥3000，买完车票后还剩 <b class="c-gold" id="left-money">¥2960</b></div>
+    <button id="start-btn">开 始 漂</button>
+    <div class="sub" style="margin-top:4px;">所有动作都是手速小游戏 · 每30天交一次房租 · 第100天解锁火车站与机场，去留自定</div>
+  </div>
+
+  <div id="game-screen" class="screen">
+    <div id="loc-banner">
+      <canvas id="loc-scene" width="64" height="40"></canvas>
+      <div style="min-width:0;">
+        <div id="loc-name">虹桥火车站</div>
+        <div id="loc-lines"></div>
+      </div>
+    </div>
+    <div id="hud">
+      <span class="day">第 <span id="day-num">1</span> 天</span>
+      <span class="phase" id="phase-name">08:00 · 上午</span>
+      <span class="cash" id="cash">¥3000</span>
+    </div>
+    <div id="bars">
+      <div class="bar-row f-health"><span class="lab">健康</span><div class="bar"><i id="b-health"></i></div><span class="val" id="v-health">0</span></div>
+      <div class="bar-row f-food"><span class="lab">饱食</span><div class="bar"><i id="b-food"></i></div><span class="val" id="v-food">0</span></div>
+      <div class="bar-row f-mood"><span class="lab">心情</span><div class="bar"><i id="b-mood"></i></div><span class="val" id="v-mood">0</span></div>
+      <div class="bar-row f-energy"><span class="lab">精力</span><div class="bar"><i id="b-energy"></i></div><span class="val" id="v-energy">0</span></div>
+      <div class="bar-row f-skill"><span class="lab">技能</span><div class="bar"><i id="b-skill"></i></div><span class="val" id="v-skill">0</span></div>
+      <div class="bar-row f-san" id="san-row"><span class="lab">精神</span><div class="bar"><i id="b-san"></i></div><span class="val" id="v-san">100</span></div>
+      <div class="bar-row gold"><span class="lab">房租</span><div style="flex:1;font-size:11px;color:var(--dim)" id="rent-info">—</div></div>
+    </div>
+    <div id="biz-status"></div>
+    <div id="log"></div>
+    <div id="actions"></div>
+    <div class="sys-row">
+      <button id="btn-restart">重新开始</button>
+    </div>
+  </div>
+
+  <div id="end-screen" class="screen">
+    <div id="end-emoji">🏙️</div>
+    <div id="end-title"></div>
+    <div id="end-desc"></div>
+    <div id="end-stats"></div>
+    <button id="restart">再漂一次</button>
+  </div>
+
+</div>
+
+<div class="modal-mask" id="metro-modal">
+  <div class="modal">
+    <h3>🚇 上海地铁 · 简化线路图</h3>
+    <div class="m-sub">👆 点击站点前往（票价 ¥3~5 · 精力-8）<br>
+      <span style="color:#ffd166">●</span> 当前站 ·
+      <span style="color:#f1f5ff; text-shadow:0 0 0 #fff">◉</span> 换乘站 ·
+      <span style="color:#f1f5ff">●</span> 普通站
+    </div>
+    <div id="metro-full"></div>
+    <div id="metro-info">🖱️ 悬停站点查看当地行情，点击即刻出发</div>
+    <div class="legend" id="metro-legend"></div>
+    <button class="m-close" onclick="closeModal('metro-modal')">关 闭</button>
+  </div>
+</div>
+
+<div class="modal-mask" id="market-modal">
+  <div class="modal">
+    <h3>🧺 <span id="market-loc">本地市场</span></h3>
+    <div class="m-sub">低买高卖，跑遍魔都当倒爷。<span style="color:var(--cyan)">每种商品只有回到产地才能进货</span>，外地的市场只能出手。<span style="color:var(--gold)">🎁 单次进货满5件免单1件</span> · 自定义定价最多喊市价3倍，喊到2倍以上只能按1.2倍到手。<span style="color:var(--red)">无执照倒卖有 8% 概率被市监抽查</span>，办了营业执照就稳了。</div>
+    <div class="inv-bar" id="inv-bar"></div>
+    <div id="goods-list"></div>
+    <button class="m-close" onclick="closeModal('market-modal')">收 摊</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="sms-box"></div>
+
+<div id="stall-overlay">
+  <div class="stall-box" id="stall-box">
+    <div class="stall-head">
+      <div class="stall-title" id="sp-title">🍢 夜市出摊中…</div>
+      <div class="stall-progress">
+        <div class="sp-fill g" id="sp-fill"></div>
+        <div class="sp-tick t50"></div><div class="sp-tick t85"></div>
+      </div>
+    </div>
+    <div class="stall-alert" id="sp-alert">🚨 城管来了！快跑！！</div>
+    <div class="stall-scene" id="sp-scene">
+      <canvas id="sp-canvas" width="180" height="110"></canvas>
+    </div>
+    <div class="stall-money">今晚已赚 <b id="sp-earned">¥0</b> <span class="sp-total">/ 满摊约 ¥<span id="sp-total">0</span></span></div>
+    <div class="stall-hint" id="sp-hint">绿区安心经营 · 黄区可跑路，越晚赚越多 · 红色 = 城管抓人，血本无归</div>
+    <button id="sp-flee" disabled>🏃 跑路（进入黄区解锁）</button>
+  </div>
+</div>
+
+<div id="mg-overlay">
+  <div class="mg-box">
+    <div class="mg-head">
+      <div class="mg-title" id="mg-title"></div>
+      <div class="mg-round" id="mg-round"></div>
+    </div>
+    <div class="mg-stage" id="mg-stage"></div>
+    <div class="mg-hint" id="mg-hint"></div>
+    <button id="mg-btn">出手！</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ============== 同事的家底：家乡 / 地铁 / 货物 ============== */
+const HOMES = [
+  { name:"苏州",   emoji:"🏞️", train:40,   plane:600,  desc:"高铁20分钟就到，周末都能回家喝口汤。" },
+  { name:"杭州",   emoji:"🍵", train:80,   plane:800,  desc:"西湖边长大的孩子，来上海像串门。" },
+  { name:"武汉",   emoji:"🍜", train:310,  plane:1100, desc:"一夜硬卧，天亮就到了魔都。" },
+  { name:"成都",   emoji:"🐼", train:490,  plane:1500, desc:"火锅胃来闯荡本帮菜的地盘。" },
+  { name:"哈尔滨", emoji:"❄️", train:780,  plane:2000, desc:"38小时硬卧，从冰城一路摇到魔都。" },
+  { name:"乌鲁木齐",emoji:"🏔️", train:1050, plane:2800, desc:"横跨大半个中国的硬座，屁股和梦想一样滚烫。" },
+];
+let selHome = 0;
+
+const METRO_LINES = {
+  1:{name:"1号线", color:"#e60012"},
+  2:{name:"2号线", color:"#97d700"},
+  8:{name:"8号线", color:"#00a3e0"},
+  9:{name:"9号线", color:"#8ecae6"},
+  10:{name:"10号线", color:"#c6a3e2"},
+  11:{name:"11号线", color:"#8d5524"},
+  14:{name:"14号线", color:"#5cd6a9"},
+};
+// 坐标全部按正规地铁图风格重排:主线横平竖直、斜线一律 45°,站名手工避让不压线
+const LOCS = [
+  { key:"hongqiao",   name:"虹桥火车站",  lines:[2,10],        x:30,  y:150, la:"start",  lx:-4,  ly:-16, arrive:"拖着行李走出虹桥站，玻璃穹顶外是灰蒙蒙的天。" },
+  { key:"zhongshan",  name:"中山公园",    lines:[2],           x:85,  y:150, la:"middle", lx:0,   ly:22,  arrive:"中山公园的梧桐绿得晃眼，老人们在长椅上打盹。" },
+  { key:"jingan",     name:"静安寺",      lines:[2,14],        x:130, y:150, la:"middle", lx:0,   ly:-14, arrive:"金顶的静安寺立在南京西路中间，香烟和尾气混在一起。" },
+  { key:"shanxi",     name:"陕西南路·淮海路", lines:[1,10],   x:180, y:190, la:"end",    lx:-8,  ly:20,  arrive:"淮海路的橱窗亮闪闪，光明邨门口排队排到马路牙子。" },
+  { key:"people",     name:"人民广场",    lines:[1,2,8],       x:180, y:150, la:"start",  lx:12,  ly:-12, arrive:"人民广场的鸽子起飞又落下，博物馆像一口青铜大鼎。" },
+  { key:"nanjing",    name:"南京东路·外滩", lines:[2,10],     x:260, y:150, la:"start",  lx:8,   ly:44,  ln:["南京东路·","外滩"], arrive:"南京东路步行街人山人海，走到头就是外滩的江风。" },
+  { key:"lujiazui",   name:"陆家嘴",      lines:[2,14],        x:290, y:150, la:"start",  lx:6,   ly:-12, arrive:"三件套把你围在中间，东方明珠顶着串糖葫芦。" },
+  { key:"century",    name:"世纪大道",    lines:[2,9],         x:320, y:150, la:"start",  lx:8,   ly:22,  arrive:"世纪大道宽得像跑道，日晷雕塑在广场上立着。" },
+  { key:"zhangjiang", name:"张江高科",    lines:[2],           x:355, y:150, la:"middle", lx:0,   ly:-14, arrive:"张江的玻璃楼里全是屏幕的光，空气里飘着咖啡因。" },
+  { key:"yuyuan",     name:"豫园·城隍庙", lines:[10,14],       x:260, y:180, la:"end",    lx:-8,  ly:2,   arrive:"九曲桥上人挤人，城隍庙的桂花香混着五香豆味儿。" },
+  { key:"xintiandi",  name:"新天地",      lines:[10],          x:215, y:225, la:"end",    lx:-10, ly:5,   arrive:"石库门红砖墙里开着咖啡馆，弄堂变成了秀场。" },
+  { key:"dapuqiao",   name:"打浦桥·田子坊", lines:[9],         x:230, y:240, la:"start",  lx:8,   ly:12,  arrive:"田子坊的弄堂窄得只容一人打伞，灯笼一串一串。" },
+  { key:"xujiahui",   name:"徐家汇",      lines:[1,9,11],      x:180, y:240, la:"end",    lx:-10, ly:5,   arrive:"徐家汇天主堂的双塔戳着云，书城里全是教辅和考研人。" },
+  { key:"wujiaochang",name:"五角场",      lines:[10],          x:300, y:50,  la:"end",    lx:-8,  ly:5,   arrive:"五角场的彩蛋下人潮涌动，楼下的盲盒店排长队。" },
+  { key:"disney",     name:"迪士尼",      lines:[11],          x:305, y:285, la:"middle", lx:0,   ly:-14, arrive:"城堡尖顶在远处闪光，广播里全是欢乐的回声。" },
+];
+const EXTRA_STOPS = {
+  1:[[180,100],[180,265]], 8:[[225,225],[225,255]], 9:[[260,240],[320,185]],
+  10:[[110,190],[300,25]], 11:[[265,285]], 14:[[210,210]],
+};
+const LINE_PATHS = {
+  1:[[180,100],[180,265]],
+  2:[[30,150],[85,150],[130,150],[180,150],[260,150],[290,150],[320,150],[355,150]],
+  8:[[180,150],[225,195],[225,255]],
+  9:[[180,240],[230,240],[290,240],[320,210],[320,150]],
+  10:[[30,150],[70,190],[180,190],[215,225],[260,180],[260,150],[300,110],[300,25]],
+  11:[[180,240],[225,285],[305,285]],
+  14:[[130,150],[190,210],[230,210],[260,180],[290,150]],
+};
+const GOODS = [
+  { key:"cosme",  name:"💄 机场免税化妆品", base:900, home:"hongqiao" },
+  { key:"bento",  name:"🍱 网红便当",   base:38,  home:"zhongshan" },
+  { key:"charm",  name:"⛩️ 静安平安符", base:45,  home:"jingan" },
+  { key:"mooncake", name:"🥮 光明邨鲜肉月饼", base:28, home:"shanxi" },
+  { key:"butter", name:"🦋 国际饭店蝴蝶酥", base:60, home:"people" },
+  { key:"sun",    name:"🕐 日晷冰箱贴", base:65,  home:"century" },
+  { key:"keyboard", name:"⌨️ 机械键盘", base:450, home:"zhangjiang" },
+  { key:"candy",  name:"🍬 大白兔奶糖",  base:30,  home:"yuyuan" },
+  { key:"pearl",  name:"🍯 止咳梨膏糖", base:40,  home:"yuyuan" },
+  { key:"coffee", name:"☕ 精品咖啡豆", base:70,  home:"xintiandi" },
+  { key:"handmade", name:"🎨 手作文创", base:55,  home:"dapuqiao" },
+  { key:"books",  name:"📚 考研全套资料", base:90, home:"xujiahui" },
+  { key:"blindbox", name:"🎁 网红盲盒", base:110, home:"wujiaochang" },
+  { key:"souvenir", name:"🗼 东方明珠模型", base:160, home:"lujiazui" },
+  { key:"disney", name:"🏰 迪士尼周边", base:230, home:"disney" },
+];
+
+/* ============== 状态量与世代 ============== */
+const RENT = 2600;
+// 时间系统:1 真实分钟 = 1 游戏小时
+const MS_PER_HOUR  = 60 * 1000;
+const DAY_START    = 8;    // 每天早上 08:00 醒来
+const NIGHTFALL    = 18;   // 18:00 后天黑,开始"熬夜"扣 SAN
+const NIGHT_WARN   = 22;   // 22:00 深夜,扣得更快
+const DAWN         = 0;    // 00:00 通宵,扣最快
+const SAN_DRAIN_EVE  = 2;  // 18:00~22:00 每小时
+const SAN_DRAIN_DEEP = 4;  // 22:00~24:00 每小时
+const SAN_DRAIN_ALLN = 9;  // 00:00~08:00 每小时(通宵)
+const SAN_MAX = 100;
+function fmtClock(h){
+  const hh = ((h%24)+24)%24;
+  return String(hh).padStart(2,"0")+":00";
+}
+function phaseOfHour(h){
+  const hh=((h%24)+24)%24;
+  if(hh < 5)  return "凌晨";
+  if(hh < 11) return "上午";
+  if(hh < 14) return "午间";
+  if(hh < 18) return "下午";
+  if(hh < 22) return "傍晚";
+  return "深夜";
+}
+// 返回该小时扣多少 SAN(0 = 白天,不扣)
+function sanDrainOf(h){
+  const hh=((h%24)+24)%24;
+  if(hh >= NIGHTFALL && hh < NIGHT_WARN) return SAN_DRAIN_EVE;
+  if(hh >= NIGHT_WARN)                   return SAN_DRAIN_DEEP;
+  if(hh < DAY_START)                     return SAN_DRAIN_ALLN;  // 00:00~07:59 通宵
+  return 0;
+}
+let s = null;
+let GEN = 0;
+let MG = null;
+let SG = null;
+let MG_GEN = null;       // 小游戏的代际标记(防过期回调)
+let MG_ACTION = null;    // 小游戏对应的行动对象
+let _clockTimer = null;  // 自动走时定时器
+
+function newState(){
+  const h = HOMES[selHome];
+  return {
+    day:1, hour:DAY_START,
+    san:SAN_MAX,
+    money:3000 - h.train,
+    health:75, food:75, mood:65, energy:90, skill:2, studyShards:0,
+    home:h.name, train:h.train, plane:h.plane,
+    loc:"hongqiao",
+    inv:{}, cap:80, buyQuota:60, tradeProfit:0, tradeCount:0, travelCount:0, bigBag:false, costMap:{},
+    hasStall:false, hasLicense:false, hasShop:false,
+    ateToday:false, workedToday:false, rentPaid:0, workCount:0, studyCount:0, maxMoney:3000-h.train,
+    over:false, finalDay:false, overReason:"",
+    prices:genPrices(), hot:null, log:[],
+  };
+}
+
+function startClock(){
+  stopClock();
+  _clockTimer = setInterval(tickClock, MS_PER_HOUR);  // 1 真实分钟 = 1 游戏小时
+}
+function stopClock(){
+  if(_clockTimer){ clearInterval(_clockTimer); _clockTimer=null; }
+}
+// 进入新的一天(睡觉 / 天亮时调用)
+function beginNewDay(){
+  nightSettle();            // 先结算"刚过去的一天"
+  if(s.over) return;
+  s.day++;
+  s.eventDone = false;
+  s.buyQuota = 60;          // 每天最多买 60 件
+  s.hour = DAY_START;
+  // 额度恢复要"看得见":短信明示 + 市场开着就立刻刷新
+  pushSms("每日额度刷新", "🌅 新的一天！今日进货额度已恢复 <b style='color:var(--gold)'>60 件</b>（每天 0 点后睡醒重置,卖货不返还额度）");
+  log(`<span class="c-dim">🌅 第${s.day}天开始,今日进货额度已恢复 60 件。</span>`,"c-dim");
+  if($("market-modal").classList.contains("show")) renderMarket();
+}
+function tickClock(){
+  if(!s || s.over || s.day > dayTarget) return;
+  const prev = s.hour;
+  s.hour = (s.hour + 1) % 24;
+
+  // 07:00 → 08:00 = 天亮,进入新的一天
+  if(prev === DAY_START-1 && s.hour === DAY_START){
+    beginNewDay();
+    if(s.over){ render(); gameOver(); return; }
+  }
+
+  // 熬夜扣 SAN
+  const drain = sanDrainOf(s.hour);
+  if(drain > 0){
+    s.san = Math.max(0, s.san - drain);
+    if(s.hour === NIGHTFALL) log(`<span class="c-warn">⌛ 18:00 天黑了。还不回出租屋睡觉?精神值开始下降(-${SAN_DRAIN_EVE}/h)。</span>`);
+    if(s.hour === NIGHT_WARN) log(`<span class="c-warn">⚠ 22:00 深夜。精神值加速流失(-${SAN_DRAIN_DEEP}/h),快睡!</span>`);
+    if(s.hour === DAWN)      log(`<span class="c-bad">💀 00:00 通宵了。精神值狂掉(-${SAN_DRAIN_ALLN}/h),再不睡真的要出事。</span>`);
+  }
+  // SAN 归零 → 死亡
+  if(s.san <= 0 && !s.over){
+    s.over = true;
+    s.overReason = "精神崩溃,倒在了深夜的出租屋里";
+    stopClock();
+    render();
+    gameOver();
+    return;
+  }
+  // 行情波动:每过一段时间可能涨价或降价,短信提醒
+  if(Math.random() < FLUCT_CHANCE) fluctuatePrices();
+  render();
+}
+
+/* ============== 行情波动 + 短信提醒 ============== */
+const FLUCT_CHANCE = 0.25;  // 每个游戏小时 25% 概率波动一次(约每4小时一次)
+function pushSms(title, html){
+  const box=$("sms-box"); if(!box) return;
+  const div=document.createElement("div");
+  div.className="sms-item";
+  div.innerHTML=`<div class="sms-head"><span>📭 ${title}</span><span>第${s.day}天 ${fmtClock(s.hour)}</span></div><div>${html}</div>`;
+  box.appendChild(div);
+  while(box.children.length>4) box.removeChild(box.firstChild);
+  setTimeout(function(){ div.classList.add("out"); setTimeout(function(){ div.remove(); },320); }, 5200);
+}
+function fluctuatePrices(){
+  if(!s || s.over) return;
+  const n = 1 + (Math.random()*3|0);   // 本次波动 1~3 种商品
+  const pool = GOODS.slice();
+  const msgs=[];
+  for(let i=0;i<n && pool.length;i++){
+    const g=pool.splice(Math.random()*pool.length|0,1)[0];
+    const old=s.prices[g.key][s.loc];
+    const np=Math.max(4,Math.round(g.base*rnd(0.6,1.5)/5)*5);  // 在本身价值的6折~1.5倍间浮动
+    if(np===old) continue;
+    s.prices[g.key][s.loc]=np;
+    const up=np>old;
+    msgs.push(`${up?"📈":"📉"} ${g.name} ${up?"涨价":"降价"}: ${fmt(old)} → <b style="color:${up?"var(--red)":"var(--green)"}">${fmt(np)}</b>`);
+  }
+  if(!msgs.length) return;
+  pushSms("魔都行情速递", msgs.join("<br>"));
+  log(`<span class="c-dim">📩 [行情速递] ${msgs.join("；")}</span>`,"c-dim");
+  if($("market-modal").classList.contains("show")) renderMarket();
+}
+
+/* ============== 工具 ============== */
+const $ = id => document.getElementById(typeof id === "string" && id.startsWith("#") ? id.slice(1) : id);
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const rnd = (a,b)=>a+Math.random()*(b-a);
+function fmt(n){ return "¥" + Math.round(n).toLocaleString("zh-CN"); }
+function locOf(key){ return LOCS.find(l=>l.key===key); }
+function invCount(){ return Object.values(s.inv).reduce((a,b)=>a+b,0); }
+function toast(msg){
+  const t=$("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove("show"),2200);
+}
+function closeModal(id){ $(id).classList.remove("show"); }
+
+/* ============== 日志 ============== */
+function log(html, cls){
+  s.log.push({html, cls});
+  const box=$("log");
+  const div=document.createElement("div");
+  div.innerHTML = `<div class="t">第${s.day}天 · ${fmtClock(s.hour)} · ${phaseOfHour(s.hour)}</div><div class="${cls||""}">${html}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+function logDay(html){
+  s.log.push({html: `<span class="c-dim">${html}</span>`, cls: "log-day"});
+  const box=$("log");
+  const div=document.createElement("div");
+  div.innerHTML = `<div class="t">—— 第${s.day}天 · ${locOf(s.loc).name} ——</div><div class="c-dim" style="font-size:12px;">${html}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ============== 场景绘制引擎 ============== */
+function R(c,color,x,y,w,h){ c.fillStyle=color; c.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h)); }
+function tri(c,color,cx,baseY,w,h){
+  for(let i=0;i<h;i++){ const t=i/h, hw=(w/2)*(1-t); R(c,color,cx-hw,baseY-h+1+i,hw*2||1,1); }
+}
+function dot(c,color,x,y,s=2){ R(c,color,x,y,s,s); }
+
+function drawShikumen(){
+  const c=$("shikumen").getContext("2d");
+  c.clearRect(0,0,96,72);
+  const sky=["#20264f","#2c2d5e","#41315f","#5e3a5c","#7a4658"];
+  sky.forEach((col,i)=>R(c,col,0,i*5,96,5));
+  for(let i=0;i<14;i++) dot(c,"#e8eaff",Math.random()*94|0,Math.random()*12|0,1);
+  dot(c,"#f5e9c8",80,7,5); dot(c,"#20264f",82,7,2);
+  R(c,"#3a2a24",6,20,84,14);
+  for(let y=0;y<7;y++) for(let x=0;x<15;x++) R(c,(x+y)%2?"#33241e":"#2a1c17",6+x*5.7,20+y*2,5,2);
+  R(c,"#1e1410",28,17,40,4); tri(c,"#1e1410",48,17,14,5);
+  R(c,"#1e1410",2,33,10,2); R(c,"#1e1410",84,33,10,2);
+  R(c,"#1e1410",4,31,6,2);  R(c,"#1e1410",86,31,6,2);
+  R(c,"#6e4237",8,34,80,32);
+  for(let y=0;y<8;y++) for(let x=0;x<12;x++)
+    R(c,(x+y)%2?"#7c4b3f":"#653a30",8+x*6.7+(y%2?3:0),34+y*4,6,3.6);
+  R(c,"#9a9a92",33,36,30,30);
+  R(c,"#b0b0a8",35,36,26,30);
+  R(c,"#8a8a82",33,33,30,3);
+  R(c,"#b0b0a8",36,30,24,3);
+  R(c,"#c9a227",42,25,12,5); R(c,"#7a5c10",43,26,10,3);
+  R(c,"#141009",38,42,20,24);
+  R(c,"#0b0906",38,42,1,24); R(c,"#0b0906",57,42,1,24);
+  R(c,"#221a10",47,42,2,24);
+  dot(c,"#d8a63f",44,52,2); dot(c,"#d8a63f",50,52,2);
+  R(c,"#d8a63f",38,42,20,1);
+  [12,70].forEach(x=>{
+    R(c,"#8a8a82",x-1,41,16,18);
+    R(c,"#1a140c",x,42,14,16);
+    R(c,"#4a2f22",x+6,42,2,16); R(c,"#4a2f22",x,49,14,2);
+    R(c,"#5e3a5c",x+2,44,4,3); R(c,"#7a4658",x+8,44,4,3);
+  });
+  [28,62].forEach(x=>{
+    R(c,"#d8a63f",x,20,4,2);
+    R(c,"#c1121f",x-1,22,6,7);
+    R(c,"#8d0f16",x-1,29,6,1); R(c,"#d8a63f",x+1,30,2,3);
+  });
+  R(c,"#4e4e55",6,66,84,6);
+  for(let x=0;x<14;x++) R(c,"#3f3f46",6+x*6,66,5,1);
+  R(c,"#33333a",32,64,32,2);
+  dot(c,"#15110c",24,62,4); dot(c,"#15110c",22,60,2,2);
+}
+
+function drawLocScene(key){
+  const c=$("loc-scene").getContext("2d");
+  c.clearRect(0,0,64,40);
+  R(c,"#252b52",0,0,64,24);
+  for(let i=0;i<8;i++) dot(c,"#e8eaff",(Math.random()*62|0),(Math.random()*10|0),1);
+  R(c,"#3f3f46",0,30,64,10);
+  R(c,"#35353c",0,30,64,2);
+  const W=(x,y)=>dot(c,"#ffd97a",x,y,1);
+  switch(key){
+    case "hongqiao":
+      R(c,"#cfd8e3",6,14,52,4); R(c,"#cfd8e3",14,10,36,4); R(c,"#cfd8e3",24,7,16,3);
+      R(c,"#9aa7b5",6,18,52,12); R(c,"#2b6cb0",6,24,52,2);
+      R(c,"#e8eef5",10,26,44,4); R(c,"#1e3a5f",10,27,44,2); dot(c,"#ffd166",12,28,2);
+      break;
+    case "zhongshan":
+      for(let i=0;i<3;i++){ R(c,"#5b3a24",8+i*20,18,2,12); R(c,"#2f7d3a",2+i*20,8,14,12); R(c,"#3fa04c",4+i*20,6,10,6); }
+      R(c,"#8d5524",40,14,10,16); tri(c,"#6e3f1c",45,14,14,8);
+      R(c,"#c9a227",44,20,2,2);
+      break;
+    case "jingan":
+      R(c,"#b03a2e",20,22,24,8); tri(c,"#d4a017",32,22,30,10); tri(c,"#d4a017",32,13,10,6);
+      dot(c,"#ffd166",26,25,2); dot(c,"#ffd166",36,25,2); R(c,"#7a1f16",30,22,4,8);
+      R(c,"#5e3a5c",46,0,18,22); W(50,4);W(56,4);W(50,9);W(56,9);
+      break;
+    case "shanxi":
+      R(c,"#5e3a5c",0,0,30,22); R(c,"#41315f",34,0,30,22); W(4,4);W(12,4);W(20,4);W(40,4);W(48,4);
+      for(let i=0;i<3;i++){ R(c,"#6b4a2f",6+i*22,20,2,10); R(c,"#2f7d3a",1+i*22,12,12,10); }
+      R(c,"#c1121f",36,18,16,2); R(c,"#c1121f",38,20,2,10); R(c,"#e8eef5",46,20,2,10);
+      break;
+    case "people":
+      R(c,"#cfc7b8",22,16,20,14); R(c,"#b8b0a0",24,12,16,4); R(c,"#a8a096",27,10,10,2);
+      R(c,"#8a8a82",30,24,4,6);
+      R(c,"#2f7d3a",0,28,18,6); R(c,"#2f7d3a",46,28,18,6);
+      dot(c,"#fff",14,25,1); dot(c,"#fff",18,23,1); dot(c,"#fff",50,26,1);
+      R(c,"#41315f",52,0,12,28); W(55,4); W(59,8);
+      break;
+    case "nanjing":
+      R(c,"#33334d",2,6,16,26); R(c,"#3d3d5c",22,2,16,30); R(c,"#2a2a40",42,8,18,24);
+      W(5,10);W(9,10);W(13,14);W(25,6);W(29,10);W(45,12);W(51,12);
+      R(c,"#ff5f9e",24,16,12,3); R(c,"#37e0ff",44,16,8,3);
+      R(c,"#ffd166",20,26,20,2); R(c,"#ffd166",44,26,14,2);
+      R(c,"#cfc7b8",58,4,3,28); dot(c,"#37e0ff",59,8,3);
+      break;
+    case "lujiazui":
+      R(c,"#7fb3d5",44,10,12,22); W(46,14);W(50,14);W(54,18);W(46,22);W(50,26);
+      R(c,"#9aa7b5",8,14,10,18); R(c,"#9aa7b5",10,10,6,4); R(c,"#9aa7b5",12,7,2,3);
+      R(c,"#c94f7c",28,16,4,4); R(c,"#c94f7c",26,24,8,8);
+      R(c,"#8a8a92",29,8,2,8); dot(c,"#c94f7c",28,7,4,2);
+      R(c,"#8a8a92",24,32,3,4); R(c,"#8a8a92",33,32,3,4);
+      break;
+    case "century":
+      R(c,"#7fb3d5",6,10,10,22); R(c,"#7fb3d5",48,12,10,20); W(8,14);W(12,18);W(50,16);W(54,20);
+      R(c,"#9aa7b5",28,10,8,20); R(c,"#c0c6cc",29,10,2,20);
+      R(c,"#c0c6cc",30,4,4,8); R(c,"#c0c6cc",26,6,12,2);
+      R(c,"#ffd166",30,3,4,2);
+      break;
+    case "zhangjiang":
+      R(c,"#5e7fa0",4,8,22,24); R(c,"#6e8fb0",34,4,24,28);
+      for(let y=0;y<6;y++) for(let x=0;x<3;x++){ W(7+x*6,12+y*3); W(38+x*6,8+y*3); }
+      dot(c,"#4ade80",30,34,3); R(c,"#0b1220",30,34,2,1);
+      break;
+    case "yuyuan":
+      R(c,"#2e6f6a",0,26,64,14);
+      R(c,"#8a8a92",4,26,26,3); R(c,"#8a8a92",30,30,30,3); R(c,"#8a8a92",18,34,20,3);
+      R(c,"#b03a2e",44,14,14,10); tri(c,"#3a2a24",51,14,18,7);
+      dot(c,"#ffd166",48,18,2); dot(c,"#ffd166",53,18,2);
+      R(c,"#c1121f",10,16,6,8); dot(c,"#ffd166",12,18,2); dot(c,"#ffd166",12,22,1);
+      R(c,"#cfc7b8",58,10,4,16); tri(c,"#8a8a82",60,10,8,6);
+      break;
+    case "xintiandi":
+      R(c,"#7c4b3f",6,12,52,18);
+      for(let y=0;y<4;y++) for(let x=0;x<7;x++) R(c,(x+y)%2?"#7c4b3f":"#6e4238",6+x*7.4+(y%2?3:0),12+y*4.5,7,4);
+      R(c,"#9a9a92",26,12,12,18); R(c,"#141009",29,16,6,14); dot(c,"#d8a63f",31,22,2);
+      R(c,"#ffd166",8,16,10,4); R(c,"#c1121f",46,16,10,4);
+      dot(c,"#4ade80",31,28,2);
+      break;
+    case "dapuqiao":
+      R(c,"#8a5a44",0,0,26,30); R(c,"#6e7b8b",38,0,26,30);
+      R(c,"#5e3a2a",26,0,12,30); dot(c,"#ffd97a",4,8,4); dot(c,"#ffd97a",48,8,4);
+      R(c,"#c1121f",30,2,4,6); R(c,"#c1121f",30,12,4,6);
+      R(c,"#3f3f46",0,30,64,10);
+      break;
+    case "xujiahui":
+      R(c,"#cfc7b8",22,14,20,16); R(c,"#b8b0a0",24,10,4,4); R(c,"#b8b0a0",36,10,4,4);
+      tri(c,"#cfc7b8",26,10,6,8); tri(c,"#cfc7b8",38,10,6,8);
+      R(c,"#8a8a92",25,3,2,7); R(c,"#8a8a92",37,3,2,7);
+      dot(c,"#ffd166",31,18,4); dot(c,"#37e0ff",32,19,2);
+      R(c,"#7c4b3f",46,10,14,20); W(49,14); W(55,14); W(49,20);
+      break;
+    case "wujiaochang":
+      R(c,"#37e0ff",20,10,24,20); R(c,"#0d1626",23,13,18,14);
+      R(c,"#5e7fa0",6,12,10,18); R(c,"#5e7fa0",48,12,10,18); W(8,16); W(50,16);
+      R(c,"#ffd166",29,14,6,6); R(c,"#ff5f9e",31,16,2,2);
+      R(c,"#3f3f46",0,30,64,10);
+      break;
+    case "disney":
+      R(c,"#4a90d9",20,16,24,14); tri(c,"#4a90d9",32,16,20,10);
+      tri(c,"#c94f7c",24,16,8,8); tri(c,"#c94f7c",40,16,8,8); tri(c,"#e8b4d8",32,8,6,8);
+      dot(c,"#ffd166",32,4,2); R(c,"#ffd166",32,0,1,4);
+      dot(c,"#fff",54,20,1); dot(c,"#fff",58,24,1); dot(c,"#fff",10,22,1);
+      R(c,"#2f7d3a",0,30,64,10);
+      break;
+  }
+}
+
+/* ============== 地铁 SVG ============== */
+function stationInfo(l){
+  const cur=locOf(s.loc);
+  const isHere=l.key===s.loc;
+  const dist=Math.hypot(l.x-cur.x,l.y-cur.y);
+  const fare=3+Math.min(2,Math.floor(dist/70));
+  const spec=GOODS.filter(g=>g.home===l.key).map(g=>
+    `${g.name} <b style="color:var(--gold)">${fmt(s.prices[g.key][l.key])}</b>`).join(" · ");
+  return `<b>${isHere?"📍 ":""}${l.name}</b>（${l.lines.map(id=>METRO_LINES[id].name).join(" / ")}）${isHere?" · 你现在就在这里":` · 票价约 <b style="color:var(--cyan)">${fmt(fare)}</b>`}<br>本地特产：${spec||"—"}`;
+}
+function renderHomeList(){
+  const el = $("home-list"); if(!el) return;
+  el.innerHTML = HOMES.map((h,i)=>`<label class="home-row">
+    <input type="radio" name="home" value="${i}" ${i===selHome?"checked":""}>
+    <span class="home-icon">${h.emoji}</span>
+    <span class="home-name">${h.name}</span>
+    <span class="home-cost">火车 &yen;${h.train} / 飞机 &yen;${h.plane}</span>
+  </label>`).join("");
+  el.querySelectorAll("input[name=home]").forEach(r => r.addEventListener("change", e => {
+    selHome = +e.target.value; const h = HOMES[selHome];
+    const lm = $("left-money"); if(lm) lm.textContent = fmt(3000 - h.train);
+  }));
+}
+
+function buildMetroSVG(container, interactive){ if(typeof container==="string") container=$(container);
+  const W=385, H=305;
+  const isMini = container.id === "metro-mini";
+  let svg=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  // === 1. 深底 + 上海轮廓 ===
+  svg+=`<defs>
+    <linearGradient id="huangpuGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b3a5e" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#2b5a8f" stop-opacity=".55"/>
+    </linearGradient>
+    <radialGradient id="bgGlow" cx=".5" cy=".5" r=".6">
+      <stop offset="0" stop-color="#1a2c48" stop-opacity=".6"/>
+      <stop offset="1" stop-color="#0d1626" stop-opacity="0"/>
+    </radialGradient>
+  </defs>`;
+  svg+=`<rect x="0" y="0" width="${W}" height="${H}" fill="url(#bgGlow)"/>`;
+  // 上海陆地轮廓（极简化）
+  svg+=`<path d="M24,130 Q40,50 140,30 Q260,8 330,55 Q368,95 360,170 Q352,240 300,280 Q210,304 128,292 Q48,278 24,200 Z"
+    fill="#112038" stroke="#1d3b66" stroke-width=".8" stroke-dasharray="2,2" opacity=".7"/>`;
+  // === 2. 黄浦江（斜带 + 浪点）===
+  svg+=`<g opacity=".85">
+    <rect x="270" y="42" width="9" height="246" fill="url(#huangpuGrad)" rx="1"/>
+    <rect x="272.5" y="44" width="4" height="242" fill="rgba(120,180,220,.25)" rx="1"/>
+  </g>`;
+  svg+=`<text x="284" y="200" font-size="9" fill="#5fa3d6" font-weight="700"
+    style="paint-order:stroke; stroke:#0d1626; stroke-width:2.5px; stroke-linejoin:round;"
+    transform="rotate(90 284 200)">黄 浦 江</text>`;
+  // === 3. 方位标 N ===
+  if(!isMini){
+    svg+=`<g transform="translate(368,18)" opacity=".7">
+      <circle r="9" fill="none" stroke="#5fa3d6" stroke-width=".8"/>
+      <path d="M0,-6 L3,3 L0,1 L-3,3 Z" fill="#5fa3d6"/>
+      <text y="14" text-anchor="middle" font-size="8" fill="#5fa3d6">N</text>
+    </g>`;
+  }
+  // === 4. 地铁线（先白外光晕 + 彩色主线）===
+  for(const id in LINE_PATHS){
+    const pts=LINE_PATHS[id].map(p=>p.join(",")).join(" ");
+    // 白外光
+    svg+=`<polyline points="${pts}" fill="none" stroke="#0d1626" stroke-width="11"
+      stroke-linecap="round" stroke-linejoin="round"/>`;
+    svg+=`<polyline points="${pts}" fill="none" stroke="#ffffff" stroke-width="9"
+      stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>`;
+    // 彩色主线
+    svg+=`<polyline points="${pts}" fill="none" stroke="${METRO_LINES[id].color}"
+      stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>`;
+    // 路过的非主线点(EXTRA_STOPS)
+    (EXTRA_STOPS[id]||[]).forEach(p=>{
+      svg+=`<circle cx="${p[0]}" cy="${p[1]}" r="2.2" fill="#0d1626"
+        stroke="${METRO_LINES[id].color}" stroke-width="1.5"/>`;
+    });
+  }
+  // === 5. 站点 ===
+  LOCS.forEach(l=>{
+    const transfers=l.lines.length>1;
+    const cur=s&&s.loc===l.key;
+    const rDot = cur ? 9 : (transfers ? 7 : 5.5);
+    const stroke = cur ? "#ffd166" : "#0d1626";
+    const fill   = cur ? "#ffd166" : (transfers ? "#ffffff" : "#f1f5ff");
+    svg+=`<g class="st-dot" data-loc="${l.key}">`;
+    // 当前站：脉冲光圈 + 实心点
+    if(cur){
+      svg+=`<circle class="st-pulse" cx="${l.x}" cy="${l.y}" r="13" fill="none"
+        stroke="#ffd166" stroke-width="2" opacity=".55"/>`;
+      svg+=`<circle class="st-pulse" cx="${l.x}" cy="${l.y}" r="17" fill="none"
+        stroke="#ffd166" stroke-width="1.5" opacity=".35"/>`;
+    }
+    // 换乘站白环
+    if(transfers){
+      svg+=`<circle cx="${l.x}" cy="${l.y}" r="11" fill="none"
+        stroke="#ffffff" stroke-width="2" opacity=".9"/>`;
+    }
+    // 命中热区
+    svg+=`<rect class="st-hit" x="${l.x-14}" y="${l.y-14}" width="28" height="28"/>`;
+    // 站点圆点
+    svg+=`<circle class="st-core" cx="${l.x}" cy="${l.y}" r="${rDot}"
+      fill="${fill}" stroke="${stroke}" stroke-width="2.5"/>`;
+    // 当前站头顶三角箭头
+    if(cur){
+      svg+=`<path d="M${l.x-5},${l.y-rDot-4} L${l.x+5},${l.y-rDot-4} L${l.x},${l.y-rDot+2} Z"
+        fill="#ffd166" stroke="#0d1626" stroke-width="1"/>`;
+    }
+    // 站点名（支持 ln 多行拆分，逐行渲染避免交错）
+    const anchor = l.la || (l.x>290?"end":(l.x<24?"start":"middle"));
+    const tx = l.x + (l.lx||0);
+    const ty = l.y + (l.ly!==undefined ? l.ly : 18);
+    const rows = l.ln || [l.name];
+    rows.forEach((t,i)=>{
+      svg+=`<text x="${tx}" y="${ty+i*12}" text-anchor="${anchor}" class="st-name"
+        font-size="${cur?12:11}"${cur?' style="fill:#ffd166;"':''}>${t}</text>`;
+    });
+    svg+=`</g>`;
+  });
+  svg+=`</svg>`;
+  container.innerHTML=svg;
+  if(interactive){
+    const info=$("metro-info");
+    const hint="🖱️ 悬停站点查看当地行情，点击即刻出发";
+    container.querySelectorAll(".st-dot").forEach(g=>{
+      const key=g.dataset.loc;
+      g.addEventListener("click",()=>travel(key));
+      g.addEventListener("mouseenter",()=>{ if(info&&s&&locOf(key)) info.innerHTML=stationInfo(locOf(key)); });
+      g.addEventListener("mouseleave",()=>{ if(info) info.innerHTML=hint; });
+    });
+  }
+}
+function renderMetroLegend(sel){ const _l = sel ? (typeof sel==="string"? $(sel):sel) : $("metro-legend");
+  _l.innerHTML = Object.values(METRO_LINES)
+    .map(l=>`<span><i style="background:${l.color}"></i>${l.name}</span>`).join("");
+}
+
+/* ============== 倒爷市场 ============== */
+function genPrices(){
+  const p={};
+  GOODS.forEach(g=>{
+    p[g.key]={};
+    LOCS.forEach(l=>{
+      const m = l.key===g.home ? rnd(0.55,0.8) : rnd(0.8,1.9);
+      p[g.key][l.key]=Math.max(4,Math.round(g.base*m/5)*5);
+    });
+  });
+  return p;
+}
+function genHot(prices){
+  const g=GOODS[Math.random()*GOODS.length|0];
+  const others=LOCS.filter(l=>l.key!==g.home);
+  const picks=[];
+  for(let i=0;i<2;i++) picks.push(others.splice(Math.random()*others.length|0,1)[0]);
+  picks.forEach(l=>{ prices[g.key][l.key]=Math.round(prices[g.key][l.key]*1.6/5)*5; });
+  return {g,locs:picks};
+}
+function priceOf(g){ return s.prices[g.key][s.loc]; }
+
+function openMarket(){
+  $("market-loc").textContent=locOf(s.loc).name+" · 批发市场";
+  renderMarket();
+  $("market-modal").classList.add("show");
+}
+function renderMarket(){
+  if(s.buyQuota==null) s.buyQuota=60;   // 兜底:防止旧会话/异常状态下额度丢失
+  const cap=invCount();
+  $("inv-bar").innerHTML=`背包：<b>${cap} / ${s.cap}</b> 件 · 今日进货额度 <b>${s.buyQuota} / 60</b> 件 · 跑货利润累计 <b>${fmt(s.tradeProfit)}</b>${s.hasLicense?"":" · <span style='color:var(--red)'>⚠️ 无照经营中</span>"}`;
+  const box=$("goods-list"); box.innerHTML="";
+  GOODS.forEach(g=>{
+    const p=priceOf(g);
+    const own=s.inv[g.key]||0;
+    const isHome=g.home===s.loc;
+    const isHot=s.hot&&s.hot.g.key===g.key&&s.hot.locs.some(x=>x.key===s.loc);
+    const cost=s.costMap[g.key]||0;
+    const row=document.createElement("div");
+    row.className="good-row"+(isHot?" hot":"");
+    row.innerHTML=`
+      <div class="g-top">
+        <span class="g-name">${g.name}${isHome?' <span class="tag" style="color:var(--green);border-color:rgba(74,222,128,.5)">产地·便宜</span>':""}${isHot?' <span class="tag" style="color:var(--gold);border-color:rgba(255,209,102,.6)">🔥 热销</span>':""}</span>
+        <span class="g-price">${fmt(g.base)}</span>
+      </div>
+      <div class="g-meta">${p<g.base?'<span style="color:var(--green)">▼ 这里的行情比本身价值便宜，适合进货</span>':(p>g.base?'<span style="color:var(--red)">▲ 这里的行情比本身价值贵，适合出手</span>':'<span style="color:var(--dim)">这里行情与本身价值持平</span>')}${own?` · 持有 <b style="color:var(--cyan)">${own}</b> 件${cost?`（均价 ${fmt(cost)}）`:""}`:""}</div>
+      <div class="g-btns">
+        ${isHome?`<button class="buy" data-g="${g.key}" data-n="1">买1</button>
+        <button class="buy" data-g="${g.key}" data-n="5">买5</button>`
+        :`<span class="no-buy">🚫 此地不产 · 只能在<b style="color:var(--cyan)">【${locOf(g.home).name}】</b>进货</span>`}
+        ${own?`<button class="sell" data-g="${g.key}" data-n="1">卖1</button>
+        <button class="sell" data-g="${g.key}" data-n="${own}">全卖${own>1?own:""}</button>
+        <button class="psell" data-g="${g.key}">自定义价卖</button>`:""}
+      </div>`;
+    box.appendChild(row);
+  });
+  box.querySelectorAll("button.buy").forEach(b=>b.onclick=()=>buyGood(b.dataset.g,+b.dataset.n));
+  box.querySelectorAll("button.sell").forEach(b=>b.onclick=()=>sellGood(b.dataset.g,+b.dataset.n));
+  box.querySelectorAll("button.psell").forEach(b=>b.onclick=()=>openCustomSell(b.dataset.g));
+}
+function buyGood(gk,n){
+  if(s.over) return;
+  const g=GOODS.find(x=>x.key===gk);
+  if(g.home!==s.loc){ toast(`此地不产${g.name}！只能去【${locOf(g.home).name}】进货`); return; }
+  const p=priceOf(g);
+  const space=s.cap-invCount();
+  if(space<=0){ toast("背包装不下了！先去卖掉一些货吧"); return; }
+  if(s.buyQuota<=0){ toast("今天进货额度用完了（每天最多 60 件），明天再来吧"); return; }
+  n=Math.min(n,space,s.buyQuota);
+  const quotaCut = s.buyQuota - n;
+  s.buyQuota -= n;
+  // 批发优惠:单次进货满5件,免单1件(总价减去一件的价钱)
+  const bulk=n>=5;
+  const total=bulk?p*(n-1):p*n;
+  if(s.money<total){ toast(`买${n}件要 ${fmt(total)}，钱不够`); return; }
+  const oldQty=s.inv[gk]||0, oldCost=s.costMap[gk]||0;
+  s.money-=total;
+  s.inv[gk]=oldQty+n;
+  s.costMap[gk]=Math.round((oldCost*oldQty+total)/(oldQty+n));
+  log(`在${locOf(s.loc).name}进货：${g.name} ×${n}，<span class="c-bad">-${fmt(total)}</span>（单价 ${fmt(p)}）${bulk?`。<span class="c-gold">🎁 批发优惠:满5件免单1件,省了 ${fmt(p)}</span>`:""}${quotaCut?`<span class="c-dim">（受每日60件额度限制）</span>`:` · 今日剩余额度 ${s.buyQuota} 件`}`,"c-dim");
+  renderMarket(); render();
+}
+function sellGood(gk,n){
+  if(s.over) return;
+  const g=GOODS.find(x=>x.key===gk);
+  const own=s.inv[gk]||0; if(own<=0) return;
+  n=Math.min(n,own);
+  const p=priceOf(g);
+  const total=p*n;
+  const cost=s.costMap[gk]||p;
+  if(!s.hasLicense && Math.random()<0.08){
+    const fine=Math.min(Math.max(s.money+total,0),150);
+    s.money-=fine; s.mood-=10; s.san=Math.max(0,s.san-8);
+    delete s.inv[gk]; delete s.costMap[gk];
+    log(`🚨 正要出手${g.name}，<b class="c-bad">市场监督所便衣拦住了你</b>——无照经营！货被暂扣，罚款 <span class="c-bad">${fmt(-fine)}</span>,<span class="c-san">精神-8</span>。<span class="c-dim">（提示：办营业执照 ¥${s.hasShop?"2200":"2500"} 后就没人查你了）</span>`,"c-bad");
+    renderMarket(); render(); return;
+  }
+  s.money+=total;
+  const profit=total-cost*n;
+  s.inv[gk]=own-n;
+  if(!s.inv[gk]){ delete s.inv[gk]; delete s.costMap[gk]; }
+  s.tradeProfit+=profit; s.tradeCount+=n;
+  const good=profit>=0;
+  log(`在${locOf(s.loc).name}出手：${g.name} ×${n}，<span class="c-good">+${fmt(total)}</span>，${good?`净赚 <span class="c-gold">${fmt(profit)}</span>，倒爷的快乐就是这么朴实无华。`:`亏了 <span class="c-bad">${fmt(-profit)}</span>……这波高买低卖了。`}`);
+  renderMarket(); render();
+}
+
+/* ===== 自定义定价卖出:价格越高越难成交 ===== */
+function openCustomSell(gk){
+  const g=GOODS.find(x=>x.key===gk);
+  const own=s.inv[gk]||0; if(!own) return;
+  const p=priceOf(g);
+  const row=[...$("goods-list").querySelectorAll(".good-row")]
+    .find(r=>r.querySelector(`button.psell[data-g="${gk}"]`));
+  if(!row) return;
+  const btns=row.querySelector(".g-btns");
+  btns.innerHTML=`
+    <div class="csell-box">
+      <input type="number" min="1" step="1" placeholder="单价¥" class="csell-input">
+      <span class="hintp">卖1件 · 市价${fmt(p)} · 最多喊3倍 · 喊到2倍以上按1.2倍到手</span>
+      <button class="buy csell-ok">成交</button>
+      <button class="csell-cancel">取消</button>
+    </div>`;
+  const input=btns.querySelector(".csell-input");
+  setTimeout(()=>{ try{ input.focus(); }catch(e){} }, 30);
+  btns.querySelector(".csell-cancel").onclick=()=>renderMarket();
+  btns.querySelector(".csell-ok").onclick=()=>customSell(gk, Math.floor(+input.value));
+  input.addEventListener("keydown",e=>{ if(e.key==="Enter") btns.querySelector(".csell-ok").click(); });
+}
+function customSell(gk, price){
+  if(s.over) return;
+  const g=GOODS.find(x=>x.key===gk);
+  const own=s.inv[gk]||0; if(own<=0) return;
+  if(!price || price<=0){ toast("先填一个合理的单价"); return; }
+  const p=priceOf(g);
+  // 定价规则:最多喊到市价3倍;喊到2~3倍区间的,成交时被砍价,最多按市价1.2倍到手
+  if(price > p*3){
+    toast(`喊太离谱了!自定义价不能超过市价(${fmt(p)})的三倍`);
+    return;
+  }
+  let deal = price;                    // 实际到手价
+  let haircut = false;
+  if(price >= p*2){ deal = Math.round(p*1.2); haircut = true; }
+  if(!s.hasLicense && Math.random()<0.08){
+    const fine=Math.min(Math.max(s.money,0),150);
+    s.money-=fine; s.mood-=10; s.san=Math.max(0,s.san-8);
+    delete s.inv[gk]; delete s.costMap[gk];
+    log(`🚨 你刚摆开摊子喊价 ${fmt(price)},<b class="c-bad">市场监督所便衣拦住了你</b>——无照经营!货被暂扣,罚款 <span class="c-bad">${fmt(-fine)}</span>,<span class="c-san">精神-8</span>。`,"c-bad");
+    renderMarket(); render(); return;
+  }
+  const ratio=deal/p;
+  const chance=clamp(1.6-0.5*ratio,0.05,1); // 市价成交率100%,1.2倍约100%,2倍约60%
+  const cost=s.costMap[gk]||p;
+  if(Math.random()<chance){
+    s.money+=deal;
+    const profit=deal-cost;
+    s.inv[gk]=own-1;
+    if(!s.inv[gk]){ delete s.inv[gk]; delete s.costMap[gk]; }
+    s.tradeProfit+=profit; s.tradeCount++;
+    log(`你给${g.name}喊价 <b class="c-gold">${fmt(price)}</b>(市价 ${fmt(p)})${haircut?`,<b>喊得太狠,顾客死命砍价,最终只按 ${fmt(deal)}(市价1.2倍)成交</b>`:",顾客磨了半天还是掏了钱"}:<span class="c-good">+${fmt(deal)}</span>${profit>=0?`,净赚 <span class="c-gold">${fmt(profit)}</span>`:`,<span class="c-bad">亏了 ${fmt(-profit)}</span>`}。`);
+  }else{
+    s.mood=clamp(s.mood-1,0,100);
+    log(`你给${g.name}喊价 ${fmt(price)},路人一听直接摆手走人——比市价(${fmt(p)})贵太多,没人接手。<span class="c-dim">定价越接近市价越好出手(当前成交率约 ${Math.round(chance*100)}%)</span>`,"c-dim");
+  }
+  renderMarket(); render();
+}
+function openMetro(){
+  buildMetroSVG($("metro-full"), true);
+  $("metro-modal").classList.add("show");
+}
+function travel(destKey){
+  if(s.over) return;
+  const dest=locOf(destKey);
+  if(!dest || destKey===s.loc){ toast("你就在这儿呢"); return; }
+  const cur=locOf(s.loc);
+  const dist=Math.hypot(dest.x-cur.x,dest.y-cur.y);
+  const fare=3+Math.min(2,Math.floor(dist/70));
+  if(s.money<fare){ toast(`地铁票都要 ${fmt(fare)}，你连这都没有`); return; }
+  closeModal("metro-modal");
+  const shared=dest.lines.filter(l=>cur.lines.includes(l));
+  const lineTxt=shared.length?`${METRO_LINES[shared[0]].name}直达`:"中途换乘一次";
+  s.money-=fare; s.energy-=8; s.travelCount++;
+  const crowded=Math.random()<0.15;
+  if(crowded) s.mood-=4;
+  s.loc=destKey;
+  log(`🚇 从${cur.name}坐地铁到<b>${dest.name}</b>（${lineTxt}，${fmt(fare)}）。${dest.arrive}${crowded?"车厢挤成沙丁鱼罐头，心情-4。":""}`);
+  advance();
+}
+
+const WEATHER = [
+  ["☀️ 晴，36℃","热到融化的桑拿天，外卖单多到飞起。"],
+  ["🌧️ 梅雨季","雨一直下，气氛不算融洽，伞又忘在地铁上了。"],
+  ["🌫️ 灰蒙蒙","空气闷闷的，只想缩在出租屋里。"],
+  ["🌤️ 微风","难得的好天气，梧桐叶在阳光里闪。"],
+  ["💨 台风外围","风大到能把人吹进黄浦江，记得关好窗。"],
+  ["❄️ 冷空气","湿冷魔法攻击，被窝以外都是远方。"],
+];
+
+
+/* ============== 我的小游戏引擎 ============== */
+function mgShow(title, round, hint, btnTxt){
+  $("mg-title").textContent = title || "";
+  $("mg-round").textContent = round || "";
+  $("mg-hint").innerHTML = hint || "";
+  const b = $("mg-btn");
+  b.style.display = "";
+  b.disabled = false;
+  b.textContent = btnTxt || "出手！";
+  $("mg-overlay").style.display = "flex";
+}
+function mgHide(){ $("mg-overlay").style.display = "none"; $("mg-stage").innerHTML = ""; }
+function mgClearTimers(){
+  if(MG){
+    clearInterval(MG.timer);
+    clearTimeout(MG.nextT);
+    MG = null;
+  }
+}
+
+function playTiming(cfg, done){
+  const R = cfg.rounds || 1;
+  const st = { i:0, greens:0, yellows:0, p:Math.random()*40+5, dir:1, running:false, last:null };
+  MG = st;
+  const stageHtml = `
+    <div class="mg-emoji">${cfg.emoji}</div>
+    <div class="mg-track" id="mg-track">
+      <div class="mg-zone y" style="left:${cfg.y[0]}%; width:${cfg.y[1]-cfg.y[0]}%;"></div>
+      <div class="mg-zone g" style="left:${cfg.g[0]}%; width:${cfg.g[1]-cfg.g[0]}%;"></div>
+      <div class="mg-needle" id="mg-needle" style="left:${st.p}%;"></div>
+    </div>
+    <div class="mg-verdict" id="mg-verdict"></div>`;
+  $("mg-stage").innerHTML = stageHtml;
+  mgShow(cfg.title, `第 1/${R} 轮`, cfg.hint, cfg.btn || "出手！");
+  const tap = ()=>{ if(!st.running) return; st.running=false; judge(); };
+  $("mg-btn").onclick = tap;
+  $("mg-track").onclick = tap;
+  st.timer = setInterval(()=>{
+    if(!st.running) return;
+    const v = 100/(cfg.sweep/50);
+    st.p += st.dir * v;
+    if(st.p>=99){ st.p=99; st.dir=-1; }
+    if(st.p<=1){ st.p=1; st.dir=1; }
+    $("mg-needle").style.left = st.p+"%";
+  }, 50);
+  st.running = true;
+
+  function judge(){
+    st.running=false;
+    const btn = $("mg-btn");
+    if(btn){ btn.disabled=true; btn.textContent="⏳ 等待中…"; }
+    const p = st.p;
+    let kind, txt, cls;
+    if(p>=cfg.g[0] && p<=cfg.g[1]){ st.greens++; kind="perfect"; txt=cfg.verdicts[0]; cls="c-good"; }
+    else if(p>=cfg.y[0] && p<=cfg.y[1]){ st.yellows++; kind="good"; txt=cfg.verdicts[1]; cls="c-gold"; }
+    else{ kind="miss"; txt=cfg.verdicts[2]; cls="c-bad"; }
+    st.last = kind;
+    const v = $("mg-verdict");
+    v.textContent = txt; v.className = "mg-verdict "+cls;
+    st.i++;
+    if(st.i>=R){
+      st.nextT = setTimeout(()=>{
+        const res = {greens:st.greens, yellows:st.yellows, rounds:R, last:kind};
+        mgClearTimers(); mgHide(); done(res);
+      }, 700);
+    }else{
+      $("mg-round").textContent = `第 ${st.i+1}/${R} 轮`;
+      st.nextT = setTimeout(()=>{
+        v.textContent=""; st.running=true;
+        if(btn){ btn.disabled=false; btn.textContent = cfg.btn || "出手！"; }
+      }, 650);
+    }
+  }
+}
+
+function playTap(cfg, done){
+  const st = { hits:0, bads:0, t:cfg.duration, finished:false, cells:[] };
+  MG = st;
+  const stageHtml = `
+    <div class="mg-grid" id="mg-grid"></div>
+    <div class="mg-score" id="mg-score"></div>
+    <div class="mg-timebar"><i id="mg-tfill" style="width:100%"></i></div>`;
+  $("mg-stage").innerHTML = stageHtml;
+  const grid = $("mg-grid");
+  for(let i=0;i<9;i++){
+    const c = document.createElement("div");
+    c.className = "mg-cell"; c._busy=false; c._kind=null;
+    c.onclick = ()=>{
+      if(st.finished || !c._kind) return;
+      if(c._kind==="good"){ st.hits++; flash(c,"good"); }
+      else{ st.bads++; flash(c,"bad"); }
+      clearCell(c); updScore();
+    };
+    grid.appendChild(c); st.cells.push(c);
+  }
+  mgShow(cfg.title, `${Math.ceil(cfg.duration/1000)} 秒`, cfg.hint, "");
+  $("mg-btn").style.display = "none";
+  function updScore(){ $("mg-score").innerHTML = cfg.scoreFmt(st.hits, st.bads); }
+  function flash(c,cls){ c.classList.add(cls); setTimeout(()=>c.classList.remove(cls),300); }
+  function clearCell(c){ c._kind=null; c._busy=false; c.textContent=""; }
+  updScore();
+  st.timer = setInterval(()=>{
+    if(st.finished) return;
+    st.t -= 50;
+    $("mg-tfill").style.width = Math.max(0, st.t/cfg.duration*100)+"%";
+    if(st.t<=0){
+      st.finished = true;
+      mgClearTimers();
+      setTimeout(()=>{ mgHide(); done({hits:st.hits, bads:st.bads}); }, 350);
+      return;
+    }
+    if(Math.random() < 50/cfg.spawn){
+      const free = st.cells.filter(c=>!c._busy);
+      if(free.length){
+        const c = free[Math.floor(Math.random()*free.length)];
+        c._busy = true;
+        const hasBad = cfg.badGen || (cfg.bads && cfg.bads.length);
+        const isBad = hasBad ? Math.random()<cfg.badP : false;
+        if(isBad){
+          c._kind = "bad";
+          c.textContent = cfg.badGen ? cfg.badGen() : cfg.bads[Math.floor(Math.random()*cfg.bads.length)];
+        }else{
+          c._kind = "good";
+          c.textContent = cfg.goods[Math.floor(Math.random()*cfg.goods.length)];
+        }
+        c.classList.add("pop"); setTimeout(()=>c.classList.remove("pop"),180);
+        setTimeout(()=>{ if(c._busy && !st.finished) clearCell(c); }, cfg.life);
+      }
+    }
+  }, 50);
+}
+
+function genQ(level){
+  const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+  let q, ans;
+  try {
+    if(level===1){
+      if(Math.random()<0.5){ const a=R(10,89), b=R(10,89); q=`${a} + ${b}`; ans=a+b; }
+      else{ const a=R(30,99), b=R(10,29); q=`${a} - ${b}`; ans=a-b; }
+    }else{
+      const r=Math.random();
+      if(r<0.4){ const a=R(3,9), b=R(4,15), c=R(5,30); q=`${a} x ${b} + ${c}`; ans=a*b+c; }
+      else if(r<0.7){ const a=R(2,9), b=R(2,9), c=R(2,9); q=`(${a} + ${b}) x ${c}`; ans=(a+b)*c; }
+      else{ const a=R(20,60), b=R(10,40), c=R(10,a+b-1); q=`${a} + ${b} - ${c}`; ans=a+b-c; if(ans<0){ ans=Math.abs(ans); } }
+    }
+  } catch(e){
+    return {q:"1 + 1", ans:2, opts:[2,3,4,5]};
+  }
+  const set = new Set([ans]);
+  const offs = [1,-1,2,-2,10,-10,3,-3];
+  let guard = 0;
+  while(set.size<4 && guard++<50){
+    const d = ans + offs[R(0,offs.length-1)];
+    if(d>=0 && d!==ans) set.add(d);
+  }
+  while(set.size<4) set.add(ans + set.size*7 + 10);
+  const opts = [...set].sort(()=>Math.random()-0.5);
+  return {q, ans, opts};
+}
+
+function playQuiz(cfg, done){
+  const st = { i:0, correct:0, total:cfg.count, locked:false };
+  MG = st;
+  const stageHtml = `
+    <div class="mg-q" id="mg-q"></div>
+    <div class="mg-opts" id="mg-opts"></div>
+    <div class="mg-timebar"><i id="mg-tfill" style="width:100%"></i></div>
+    <div class="mg-verdict" id="mg-verdict"></div>`;
+  $("mg-stage").innerHTML = stageHtml;
+  mgShow(cfg.title, `第 1/${cfg.count} 题`, cfg.hint, "");
+  $("mg-btn").style.display = "none";
+  next();
+  function next(){
+    if(st.i>=st.total){ finish(); return; }
+    $("mg-round").textContent = `第 ${st.i+1}/${st.total} 题`;
+    $("mg-verdict").textContent = "";
+    let q = genQ(cfg.level);
+    $("mg-q").textContent = q.q + " = ?";
+    const box = $("mg-opts"); box.innerHTML = "";
+    st.locked = false;
+    const answer = (btn, ok)=>{
+      if(st.locked) return;
+      st.locked = true; clearInterval(st.timer);
+      if(ok){ st.correct++; btn.classList.add("right"); }
+      else{
+        btn.classList.add("wrong");
+        [...box.children].forEach(x=>{ if(+x.textContent===q.ans) x.classList.add("right"); });
+      }
+      const v=$("mg-verdict");
+      v.textContent = ok ? "OK 答对了" : "X 答错了";
+      v.className = "mg-verdict "+(ok?"c-good":"c-bad");
+      st.i++;
+      st.nextT = setTimeout(next, 650);
+    };
+    q.opts.forEach(o=>{
+      const b = document.createElement("button");
+      b.className = "mg-opt"; b.textContent = o;
+      b.onclick = ()=>answer(b, o===q.ans);
+      box.appendChild(b);
+    });
+    let t = cfg.sec*1000;
+    clearInterval(st.timer);
+    st.timer = setInterval(()=>{
+      t -= 80;
+      $("mg-tfill").style.width = Math.max(0, t/(cfg.sec*1000)*100)+"%";
+      if(t<=0){ clearInterval(st.timer); if(!st.locked){ st.locked=true; st.i++; st.nextT = setTimeout(next, 350); } }
+    }, 80);
+  }
+  function finish(){
+    mgClearTimers();
+    setTimeout(()=>{ mgHide(); done({correct:st.correct, total:st.total}); }, 300);
+  }
+}
+
+
+/* ============== 摆摊摊位实况像素画 ============== */
+function drawStall(){
+  const cv=$("sp-canvas"); if(!cv) return;
+  const c=cv.getContext("2d");
+  c.clearRect(0,0,180,110);
+  // 夜空
+  ["#1a2450","#222b5c","#2b3368"].forEach(function(col,i){ R(c,col,0,i*14,180,14); });
+  for(let i=0;i<18;i++) dot(c,"#e8eaff",Math.random()*176|0,Math.random()*26|0,1);
+  // 远处楼群 + 亮灯的窗
+  [[8,26],[36,32],[64,22],[96,36],[128,26],[156,30]].forEach(function(b,i){
+    R(c,"#10172f",b[0],66-b[1],20,b[1]);
+    for(let y=0;y<Math.floor(b[1]/7);y++) for(let x=0;x<2;x++)
+      if((i+x+y)%3) R(c,"#ffd97a",b[0]+5+x*8,70-b[1]+5+y*7,3,3);
+  });
+  // 地面
+  R(c,"#2a2f3a",0,66,180,44);
+  R(c,"#323845",0,66,180,3);
+  // 三轮车斗
+  R(c,"#5a3d28",46,80,82,8);
+  R(c,"#6e4a30",46,76,82,5);
+  // 锅灶 + 蒸笼 + 热气
+  R(c,"#3a3f4a",54,60,34,16);
+  R(c,"#8892a0",56,56,30,5);
+  R(c,"#b9c2cf",60,52,9,4); R(c,"#b9c2cf",74,52,9,4);
+  dot(c,"#cfd8e3",62,46,2); dot(c,"#cfd8e3",66,40,2);
+  dot(c,"#cfd8e3",78,46,2); dot(c,"#cfd8e3",82,39,2);
+  // 串签
+  for(let i=0;i<5;i++) R(c,"#d8a63f",96+i*5,62,1,14);
+  // 手写招牌
+  R(c,"#f3f0e8",98,42,26,12);
+  R(c,"#c1121f",101,45,20,2); R(c,"#c1121f",101,49,14,2);
+  // 遮阳棚(红白条纹)
+  for(let i=0;i<9;i++) R(c,i%2?"#f3f0e8":"#e05252",38+i*10,40,10,8);
+  R(c,"#7a4a2c",38,48,92,3);
+  R(c,"#7a4a2c",40,48,3,30); R(c,"#7a4a2c",124,48,3,30);
+  // 灯笼
+  R(c,"#ffd166",128,52,6,2); dot(c,"#ff5f5f",131,57,5); R(c,"#ff5f5f",129,62,5,2);
+  // 摊主
+  R(c,"#e8b88a",144,56,8,8);
+  R(c,"#37414f",142,64,12,14);
+  R(c,"#e8b88a",140,66,3,7);
+  // 车轮
+  c.fillStyle="#1a1d24"; c.beginPath(); c.arc(60,92,8,0,7); c.fill();
+  c.beginPath(); c.arc(114,92,8,0,7); c.fill();
+  c.fillStyle="#4a4f5a"; c.beginPath(); c.arc(60,92,3,0,7); c.fill();
+  c.beginPath(); c.arc(114,92,3,0,7); c.fill();
+}
+
+/* ============== 摆摊过程小游戏（替换同事的 25% 随机） ============== */
+function launchStallFlow(){
+  if(s.hasShop){
+    playTap({
+      title:"开门迎客", hint:"夜市人潮涌动！点击招呼客人，别理职业差评师(每个差评-60元)",
+      goods:["人","女","爷","童","婴"], bads:["X"], badP:.15,
+      duration:10000, spawn:480, life:900,
+      scoreFmt:(h,b)=>`接待 <b>${h}</b> 位客人${b?` · 差评 <span class="c-bad">${b}</span>`:""}`,
+    }, res=>{
+      const inc = Math.max(200, Math.min(1100, 420+70*res.hits) - res.bads*60);
+      s.money += inc; s.mood += 2;
+      log(`门店亮起灯，一晚上接待了 ${res.hits} 位客人${res.bads?`、挨了 ${res.bads} 个差评`:""}：营业额 <span class="c-good">+¥${inc}</span>。你是老板了，风吹雨打城管巡逻，都与你无关了。`);
+      advance();
+    });
+  }else if(s.hasLicense){
+    launchStallGame({licensed:true});
+  }else{
+    launchStallGame({});
+  }
+}
+
+function launchStallGame(opts){
+  opts = opts || {};
+  const licensed = !!opts.licensed;
+  const total = 400 + Math.floor(Math.random()*301);
+  const surge = Math.random()<(licensed?0.10:0.30) ? 25+Math.random()*35 : -1;
+  SG = { licensed:licensed, total:total, surge:surge, p:0, mult:1, ended:false, timer:null };
+  $("sp-title").textContent = licensed ? "夜市出摊中(持照经营)" : "夜市出摊中...";
+  $("sp-total").textContent = total;
+  $("sp-earned").textContent = "0";
+  $("sp-alert").style.display = "none";
+  $("sp-alert").textContent = licensed ? "城管例行检查! 想清楚要不要收摊!" : "城管来了! 快跑!!";
+  $("sp-hint").innerHTML = licensed
+    ? "持照经营 · 收摊越晚赚越多 · 若今晚有例行检查(10%),拖到红区会吃100元罚单但营收保留 · 满摊自动收工"
+    : "绿区安心经营 · 黄区可跑路,越晚赚越多 · 红色 = 城管抓人,血本无归";
+  $("stall-box").classList.remove("shake");
+  $("sp-scene").classList.remove("alert");
+  $("sp-flee").disabled = true;
+  $("sp-flee").textContent = licensed ? "收摊结账(进入黄区解锁)" : "跑路(进入黄区解锁)";
+  $("sp-scene").querySelectorAll(".sp-float,.sp-walk").forEach(function(e){ e.remove(); });
+  $("stall-overlay").style.display = "flex";
+  drawStall();
+  spUpdate();
+  SG.timer = setInterval(spTick, 50);
+}
+
+function spTick(){
+  if(!SG || SG.ended) return;
+  if(SG.surge>=0 && SG.p>=SG.surge && SG.mult===1){
+    SG.mult = 3.5;
+    $("sp-alert").style.display = "block";
+    $("stall-box").classList.add("shake");
+    $("sp-scene").classList.add("alert");   // 摊位画面红光警报
+    toast("🚨 城管来了!");
+  }
+  SG.p += 0.555 * SG.mult;
+  spUpdate();
+  if(SG.licensed){
+    if(SG.p>=100){ finishStall(false, true); return; }
+  }else if(SG.p>=85){
+    finishStall(true); return;
+  }
+  if(Math.random()<0.22) spSpawnFloat();
+  if(Math.random()<0.06) spSpawnWalker();
+}
+
+function spUpdate(){
+  const p = Math.min(SG.p, 100);
+  const cap = SG.licensed ? 100 : 84.99;
+  const fill = $("sp-fill");
+  fill.style.width = p + "%";
+  fill.className = "sp-fill " + (SG.p>=85?"r":SG.p>=50?"y":"g");
+  $("sp-earned").textContent = "¥" + Math.floor(SG.total * Math.min(SG.p, cap) / 100);
+  const btn = $("sp-flee");
+  const canFlee = SG.p>=50 && (SG.licensed || SG.p<85);
+  if(canFlee){
+    btn.disabled = false;
+    btn.textContent = SG.licensed ? "收摊!保住今晚的钱" : "跑路!保住今晚的钱";
+  }else{
+    btn.disabled = true;
+    btn.textContent = SG.licensed ? "收摊结账(进入黄区解锁)" : "跑路(进入黄区解锁)";
+  }
+}
+
+function spSpawnFloat(){
+  const d = document.createElement("div");
+  d.className = "sp-float";
+  d.textContent = Math.random()<0.5
+    ? ["串","饺","饮","锅"][Math.floor(Math.random()*4)]
+    : "+¥" + (10+Math.floor(Math.random()*40));
+  d.style.left = (10+Math.random()*78) + "%";
+  d.style.top  = (35+Math.random()*45) + "%";
+  $("sp-scene").appendChild(d);
+  setTimeout(function(){ d.remove(); }, 1700);
+}
+function spSpawnWalker(){
+  const d = document.createElement("div");
+  d.className = "sp-walk";
+  d.textContent = ["人","女","叔","姨"][Math.floor(Math.random()*4)];
+  d.style.top = (15+Math.random()*35) + "%";
+  d.style.animationDuration = (3+Math.random()*3) + "s";
+  $("sp-scene").appendChild(d);
+  setTimeout(function(){ d.remove(); }, 6500);
+}
+
+function finishStall(caught, full){
+  if(!SG || SG.ended) return;
+  SG.ended = true;
+  clearInterval(SG.timer);
+  const gen = GEN;
+  const cap = SG.licensed ? 100 : 84.99;
+  const earned = Math.floor(SG.total * Math.min(SG.p, cap) / 100);
+  setTimeout(function(){
+    if(gen!==GEN) return;
+    $("stall-overlay").style.display = "none";
+    if(SG.licensed){
+      if(caught){
+        s.money += earned; s.money -= 100; s.mood -= 5;
+        log(`出摊一晚 <span class="c-good">+¥${earned}</span>。<b class="c-bad">城管例行检查</b>,你掏出营业执照,对方看了一眼摆摆手放行——但还是开了张占道经营的罚单 <span class="c-bad">-¥100</span>。`);
+      }else{
+        s.money += earned;
+        log(`持照经营到满摊收工,一晚安心入账 <span class="c-good">+¥${earned}</span>。`);
+      }
+    }else if(caught){
+      s.hasStall=false; s.money-=200; s.mood-=15; s.san=Math.max(0,s.san-12);
+      log(`<b>跑慢一步,城管当场把摊掀了!</b>一晚上的营收被没收,罚款+货物损失 <span class="c-bad">-¥200</span>,<span class="c-san">精神-12</span>,<b>摊位没了,得重新置办</b>。`,"c-bad");
+    }else{
+      s.money += earned;
+      log(`眼疾手快,推着车一头扎进小巷——今晚赚的 <span class="c-good">+¥${earned}</span> 保住了,心跳得比点钞机还快。`);
+    }
+    render(); advance();
+  }, caught?900:400);
+}
+$("sp-flee").onclick = function(){ if(SG && !SG.ended && SG.p>=50 && (SG.licensed || SG.p<85)) finishStall(false); };
+
+
+/* ============== 行动清单 ============== */
+const ACTIONS = [
+  { key:"metro",  name:"地铁出行", cost:"3~5元 · 1小时", desc:"打开上海地铁线路图,跑遍魔都找价差", cls:"travel wide",
+    ok:function(){ return !s.over; }, run:function(){ openMetro(); } },
+  { key:"market", name:"逛本地市场", cost:"免费", desc:function(){ return "进货/出手货物 · 背包 "+invCount()+"/"+s.cap+" · 今日额度 "+(s.buyQuota==null?60:s.buyQuota)+"/60"; }, cls:"market wide",
+    ok:function(){ return !s.over; }, run:function(){ openMarket(); } },
+
+  { key:"store", name:"便利店兼职", cost:"精力20", desc:"+75~180 · 扫码小游戏 · 每日1次", work:true,
+    ok:function(s){ return s.energy>=20 && !s.workedToday && !s.over; },
+    start:function(s){ s.energy-=20; s.mood-=3; s.workCount++; s.workedToday=true; },
+    game:{ type:"tap", cfg:{
+      title:"收银挑战", hint:"商品飞过传送带,点扫码!别点到摔碎的(每件赔15元)",
+      goods:["包","面","饮","杯","饭"], bads:["碎"], badP:.18,
+      duration:8000, spawn:560, life:950,
+      scoreFmt:function(h,b){ return "已扫码 <b>"+h+"</b> 件"+(b?" · 摔碎 <span class='c-bad'>"+b+"</span>":""); },
+      finish:function(s,res){
+        const pay = Math.round(150*clamp(0.5+res.hits*0.06, 0.5, 1.2));
+        s.money += pay - res.bads*15;
+        log(`在${locOf(s.loc).name}附近的全家站了一班收银:扫码 <b>${res.hits}</b> 件商品${res.bads?`,失手摔碎 ${res.bads} 件`:""},工资 <span class="c-good">+¥${pay}</span>${res.bads?` <span class="c-bad">赔款 -¥${res.bads*15}</span>`:""}。`);
+      } } } },
+  { key:"waimai", name:"送外卖", cost:"精力35", desc:"+165~345 · 抢单小游戏 · 健康-4 · 每日1次", work:true,
+    ok:function(s){ return s.energy>=35 && !s.workedToday && !s.over; },
+    start:function(s){ s.energy-=35; s.health-=4; s.workCount++; s.workedToday=true; },
+    game:{ type:"tap", cfg:{
+      title:"抢单冲刺", hint:"手机疯狂弹单!点抢单,千万别点封路通告(每次损失15元)",
+      goods:["抢","面","饮","饺"], bads:["堵"], badP:.18,
+      duration:8000, spawn:500, life:900,
+      scoreFmt:function(h,b){ return "已抢 <b>"+h+"</b> 单"+(b?" · 封路被拦 <span class='c-bad'>"+b+"</span>":""); },
+      finish:function(s,res){
+        const pay = Math.round(300*clamp(0.55+res.hits*0.05, 0.55, 1.15));
+        s.money += pay - res.bads*15; s.mood -= res.bads*2;
+        const p=LOCS[Math.floor(Math.random()*LOCS.length)].name;
+        log(`一路飞驰抢下 ${res.hits} 单${res.bads?`,封路绕远 ${res.bads} 次`:""},还爬了6楼送${p}的一单麻辣烫。<span class="c-good">+¥${pay}</span>${res.bads?` <span class="c-bad">绕路损失 -¥${res.bads*15}</span>`:""}。`);
+      } } } },
+  { key:"tutor", name:"做家教", cost:"精力25", desc:"+200~400 · 口算小游戏 · 技能>=2 · 每日1次", work:true,
+    ok:function(s){ return s.skill>=2 && s.energy>=25 && !s.workedToday && !s.over; },
+    start:function(s){ s.energy-=25; s.workCount++; s.workedToday=true; },
+    game:{ type:"quiz", cfg:{
+      title:"家教随堂测", hint:"给初二娃演示口算——又快又准,家长才会续课!",
+      count:5, sec:8, level:1,
+      finish:function(s,res){
+        const pay = 200 + 40*res.correct;
+        s.money += pay;
+        log(`给浦东初二娃讲了俩小时二次函数,随堂测 ${res.correct}/${res.total} 的正确率${res.correct>=4?",家长当场续了下学期":",家长客气地说再观察看看"}。<span class="c-good">+¥${pay}</span>`);
+      } } } },
+  { key:"free", name:"接私活", cost:"精力30", desc:"+300~800 · 修Bug小游戏 · 技能>=4 · 每日1次", work:true,
+    ok:function(s){ return s.skill>=4 && s.energy>=30 && !s.workedToday && !s.over; },
+    start:function(s){ s.energy-=30; s.mood+=2; s.workCount++; s.workedToday=true; },
+    game:{ type:"tap", cfg:{
+      title:"深夜修Bug", hint:"Bug满屏乱爬!点消灭——千万别点存档(误删文件,每个-80元)",
+      goods:["虫","虫"], bads:["盘"], badP:.15,
+      duration:10000, spawn:480, life:850,
+      scoreFmt:function(h,b){ return "已修复 <b>"+h+"</b> 个Bug"+(b?" · 误删 <span class='c-bad'>"+b+"</span>":""); },
+      finish:function(s,res){
+        const gross = Math.max(150, 300 + 40*res.hits);
+        const pay = gross - res.bads*80;
+        s.money += pay;
+        log(`熬夜修完了 ${res.hits} 个Bug${res.bads?`,手滑误删了 ${res.bads} 次文件`:""},甲方看完直接打款 <span class="c-good">+¥${pay}</span>(底价¥${gross}${res.bads?`,事故扣 ¥${res.bads*80}`:""})。`);
+      } } } },
+  { key:"study", name:"图书馆自习", cost:"精力15", desc:"技能+1(做对3题) · 限时心算小游戏",
+    ok:function(s){ return s.energy>=15 && !s.over; },
+    start:function(s){ s.energy-=15; s.studyCount++; },
+    game:{ type:"quiz", cfg:{
+      title:"图书馆刷题", hint:"限时心算挑战——做对3题技能+1,没做对的碎片攒够3块也能+1",
+      count:5, sec:10, level:2,
+      finish:function(s,res){
+        let msg;
+        if(res.correct>=3){ s.skill+=1; msg=`<span class="c-cyan">技能+1</span>(当前Lv.${s.skill})`; }
+        else{
+          s.studyShards += res.correct;
+          if(s.studyShards>=3){ s.skill+=1; s.studyShards-=3; msg=`碎片攒够了!<span class="c-cyan">技能+1</span>(当前Lv.${s.skill})`; }
+          else msg=`只做对 ${res.correct} 题,知识以碎片形式进入了脑子(碎片 ${s.studyShards}/3)。`;
+        }
+        s.mood -= res.correct>=4?2:6;
+        log(`在上海图书馆刷了一下午题,${res.correct}/${res.total} 做对。${msg} 脑子很胀。`);
+      } } } },
+
+  { key:"buystall", name:"置办摊位", cost:"420~600元", desc:"砍价小游戏:每停绿区-60 · 解锁出摊",
+    ok:function(s){ return !s.hasStall && !s.hasShop && s.money>=600 && !s.over; },
+    game:{ type:"timing", cfg:{
+      emoji:"摊", title:"二手市场砍价", btn:"砍!",
+      hint:"三轮砍价:绿区=狠砍(每轮-60),黄区=小刀(-30)", rounds:3, sweep:1700, g:[43,57], y:[32,68],
+      verdicts:["砍到好价!","小砍一刀","没砍动..."],
+      finish:function(s,res){
+        const disc = res.greens*60 + res.yellows*30;
+        const pay = 600 - disc;
+        s.money -= pay; s.hasStall = true;
+        log(`去二手市场淘了辆三轮车,配上炉子、锅碗和首批食材${disc?`,一番讨价还价砍掉 <span class="c-gold">¥${disc}</span>`:""}:<span class="c-bad">-¥${pay}</span>。你有了自己的摊位——从此出摊来钱快,但城管的目光也随之而来。`);
+      } } } },
+  { key:"stall", name:"出摊摆夜市", cost:"精力30", desc:"+400~700 · 出摊小游戏:无照红区被抓,有照10%检查 · 每日1次", work:true,
+    ok:function(s){ return (s.hasStall||s.hasShop) && s.energy>=30 && !s.workedToday && !s.over; },
+    start:function(s){ s.energy-=30; s.workedToday=true; s.workCount++; },
+    game:{ type:"stall" } },
+  { key:"license", name:"办营业执照", cost:"2200~2500元", desc:"叫号小游戏:抢到窗口省300 · 倒卖摆摊都安全",
+    ok:function(s){ return !s.hasLicense && s.money>=2500 && !s.over; },
+    game:{ type:"tap", cfg:{
+      title:"政务大厅叫号", hint:"紧盯叫号屏!你的号是A048——它一出现立刻点它!点错号要重新排队",
+      goods:["A048"], badP:.8,
+      badGen:function(){ return ""+(100+Math.floor(Math.random()*900)); },
+      duration:8000, spawn:650, life:1100,
+      scoreFmt:function(h,b){ return "叫到你的号 <b>"+h+"</b> 次"+(b?" · 点错 <span class='c-bad'>"+b+"</span>":""); },
+      finish:function(s,res){
+        if(res.hits>=1){
+          s.money -= 2200; s.hasLicense = true;
+          log(`政务大厅眼疾手快,叫号屏一闪你就冲到了窗口:<span class="c-bad">-¥2200</span>(省300元)。从此遇到城管检查也能挺直腰板。`);
+        }else{
+          s.money -= 2500; s.hasLicense = true; s.mood -= 2;
+          log(`排了两趟队、过号一次,终于把营业执照捧回了出租屋:<span class="c-bad">-¥2500</span>,腿都站麻了。从此遇到城管检查也能挺直腰板。`);
+        }
+      } } } },
+  { key:"shop", name:"租下门店", cost:"4550~5000元", desc:"磨价小游戏 · 城管管不着 · 月租+2000", wide:true,
+    ok:function(s){ return s.hasLicense && !s.hasShop && s.money>=5000 && !s.over; },
+    game:{ type:"timing", cfg:{
+      emoji:"店", title:"和二房东磨顶让费", btn:"磨!",
+      hint:"三轮拉锯:绿区磨下一大口(每轮-150),黄区小刀(-75)", rounds:3, sweep:1600, g:[45,55], y:[35,65],
+      verdicts:["磨下一大口!","小刀一下","没磨动..."],
+      finish:function(s,res){
+        const disc = res.greens*150 + res.yellows*75;
+        const pay = 5000 - disc;
+        s.money -= pay; s.hasShop = true;
+        log(`和二房东磨了一下午嘴皮子${disc?`,磨掉 <span class="c-gold">¥${disc}</span>`:""},夜市边的小门面到手:<span class="c-bad">-¥${pay}</span>。从此刮风下雨城管巡逻都与你无关——只是每月房租多一份 <span class="c-bad">+¥2000</span>。`);
+      } } } },
+
+  { key:"eat1", name:"便利店简餐", cost:"25元", desc:"饱食+22~32 · 微波炉叮一下",
+    ok:function(s){ return !s.over && s.money>=25; },
+    start:function(s){ s.money-=25; s.ateToday=true; },
+    game:{ type:"timing", cfg:{
+      emoji:"饭", title:"微波炉叮一下", btn:"叮!",
+      hint:"掐准叮的瞬间:绿区=加热完美(饱食+32 心情+2),黄区=还行,圈外=有点凉",
+      rounds:1, sweep:1900, g:[40,60], y:[28,72],
+      verdicts:["叮得恰到好处!","热得还行","有点凉了..."],
+      finish:function(s,res){
+        if(res.last==="perfect"){ s.food=clamp(s.food+32,0,100); s.mood+=2;
+          log(`微波炉叮得恰到好处:饭团温热、关东煮滚烫。<span class="c-bad">-¥25</span> <span class="c-good">饱食+32</span> <span class="c-pink">心情+2</span>`); }
+        else if(res.last==="good"){ s.food=clamp(s.food+28,0,100);
+          log(`饭团+关东煮+无糖茶,沪漂标配一餐。<span class="c-bad">-¥25</span> <span class="c-good">饱食+28</span>`); }
+        else{ s.food=clamp(s.food+22,0,100);
+          log(`加热时间没掐准,饭团心还有点凉,也凑合吃了。<span class="c-bad">-¥25</span> <span class="c-good">饱食+22</span>`); }
+      } } } },
+  { key:"eat2", name:"苍蝇馆子", cost:"45元", desc:"饱食+38~50 · 大火煮面",
+    ok:function(s){ return !s.over && s.money>=45; },
+    start:function(s){ s.money-=45; s.ateToday=true; },
+    game:{ type:"timing", cfg:{
+      emoji:"面", title:"大火煮面", btn:"起锅!",
+      hint:"掐准起锅时机:绿区=面刚好多亏两分(饱食+50 心情+6),黄区=不错,圈外=煮坨",
+      rounds:1, sweep:1700, g:[42,58], y:[30,70],
+      verdicts:["火候完美!","煮得不错","煮坨了..."],
+      finish:function(s,res){
+        if(res.last==="perfect"){ s.food=clamp(s.food+50,0,100); s.mood+=6;
+          log(`弄堂口的牛肉面大火煮到刚刚好,加了个蛋,老板多送了半勺辣肉。<span class="c-bad">-¥45</span> <span class="c-good">饱食+50</span> <span class="c-pink">心情+6</span>`); }
+        else if(res.last==="good"){ s.food=clamp(s.food+45,0,100); s.mood+=4;
+          log(`弄堂口的牛肉面加了个蛋,老板多送了半勺辣肉。<span class="c-bad">-¥45</span> <span class="c-good">饱食+45</span> <span class="c-pink">心情+4</span>`); }
+        else{ s.food=clamp(s.food+38,0,100); s.mood+=2;
+          log(`面下锅时走了会儿神,稍微坨了点,但汤还是鲜的。<span class="c-bad">-¥45</span> <span class="c-good">饱食+38</span> <span class="c-pink">心情+2</span>`); }
+      } } } },
+  { key:"eat3", name:"放题犒劳", cost:"260元", desc:"饱食+~70 心情+~20 · 抢鲜小游戏",
+    ok:function(s){ return s.money>=260 && !s.over; },
+    start:function(s){ s.money-=260; s.ateToday=true; },
+    game:{ type:"tap", cfg:{
+      title:"放题抢鲜", hint:"回转寿司全速运转!点餐盘抢鲜——别点变态辣(闹肚子 健康-2)",
+      goods:["鱼","鱼","虾","菜","贝"], bads:["辣"], badP:.15,
+      duration:10000, spawn:500, life:900,
+      scoreFmt:function(h,b){ return "抢到 <b>"+h+"</b> 盘"+(b?" · 变态辣 <span class='c-bad'>"+b+"</span>":""); },
+      finish:function(s,res){
+        const f = Math.min(70, 24+5*res.hits), m = Math.min(20, 6+2*res.hits);
+        s.food=clamp(s.food+f,0,100); s.mood+=m; s.health-=res.bads*2;
+        log(`放题战场上抢下 ${res.hits} 盘${res.bads?`,还误吃了 ${res.bads} 口变态辣`:""}:<span class="c-bad">-¥260</span> <span class="c-good">饱食+${f}</span> <span class="c-pink">心情+${m}</span>${res.bads?` <span class="c-bad">健康-${res.bads*2}</span>`:""}。`);
+      } } } },
+
+  { key:"xiaolongbao", name:"南翔小笼包", cost:"45元", desc:"饱食+40 · 心情+8 · 在豫园", where:["yuyuan"],
+    ok:function(s){ return s.money>=45 && !s.over; },
+    start:function(s){ s.money-=45; s.ateToday=true; },
+    game:{ type:"timing", cfg:{
+      emoji:"包", title:"小笼开窗", btn:"开窗!",
+      hint:"烫嘴的汤包要想不烫舌头,先开窗再喝汤——绿区=完美开窗(饱食+44),黄区=有点歪",
+      rounds:1, sweep:1500, g:[42,58], y:[32,68],
+      verdicts:["完美开窗!","不烫嘴","戳破啦..."],
+      finish:function(s,res){
+        if(res.last==="perfect"){ s.food=clamp(s.food+44,0,100); s.mood+=10;
+          log(`在豫园排队半小时,一笼热气腾腾的小笼开窗完美。<span class="c-bad">-¥45</span> <span class="c-good">饱食+44</span> <span class="c-pink">心情+10</span>`); }
+        else if(res.last==="good"){ s.food=clamp(s.food+40,0,100); s.mood+=8;
+          log(`在豫园排队半小时,一笼热气腾腾的小笼,先开窗后喝汤。<span class="c-bad">-¥45</span> <span class="c-good">饱食+40</span> <span class="c-pink">心情+8</span>`); }
+        else{ s.food=clamp(s.food+34,0,100); s.mood+=5;
+          log(`手一抖戳破了皮,汤洒一桌,狼狈地用勺子兜起来。<span class="c-bad">-¥45</span> <span class="c-good">饱食+34</span> <span class="c-pink">心情+5</span>`); }
+      } } } },
+  { key:"disneyday", name:"迪士尼玩一天", cost:"475元", desc:"心情+35 · 精力-25 · 在迪士尼", where:["disney"],
+    ok:function(s){ return s.money>=475 && s.energy>=25 && !s.over; },
+    start:function(s){ s.money-=475; s.energy-=25; s.ateToday=true; },
+    game:{ type:"tap", cfg:{
+      title:"烟花合影", hint:"城堡烟花专场!点抓拍留念,错过卡通风气球就亏一束(每个-30元)",
+      goods:["闪","星","星","光"], bads:["球"], badP:.18,
+      duration:9000, spawn:480, life:850,
+      scoreFmt:function(h,b){ return "抓到 <b>"+h+"</b> 张大片"+(b?" · 错气球 <span class='c-bad'>"+b+"</span>":""); },
+      finish:function(s,res){
+        const m = Math.min(35, 12+6*res.hits) - res.bads*3;
+        s.mood+=m;
+        log(`烟花在城堡上空炸开的那刻${res.hits>=6?",你抓的全是封面级大片":",你举着手机拍了不少烟花"}:<span class="c-bad">-¥475</span> <span class="c-pink">心情+${m}</span>${res.bads?` <span class="c-bad">错气球 -¥${res.bads*30}</span>`:""}——大人的快乐也是要付费的。`);
+      } } } },
+  { key:"temple", name:"静安寺上香", cost:"20元", desc:"心情+12 · 在静安寺", where:["jingan"],
+    ok:function(s){ return s.money>=20 && !s.over; },
+    start:function(s){ s.money-=20; },
+    game:{ type:"timing", cfg:{
+      emoji:"香", title:"上香时刻", btn:"上香!",
+      hint:"金顶大殿里插稳三炷香:绿区=插得正(心情+14),黄区=有点歪",
+      rounds:3, sweep:1500, g:[44,56], y:[34,66],
+      verdicts:["三炷端正!","立住了","又歪了..."],
+      finish:function(s,res){
+        const m = Math.round(6+2.6*res.greens);
+        s.mood+=m;
+        log(`在闹市中的金顶大殿里插了三炷香${res.greens>=2?",姿势比老居士还标准":",手抖了一回"},求个平安——<span class="c-pink">心情+${m}</span>。`);
+      } } } },
+  { key:"bund", name:"外滩吹风", cost:"免费 · 精力5", desc:"心情+16 · 在外滩", where:["nanjing"],
+    ok:function(s){ return s.energy>=5 && !s.over; },
+    start:function(s){ s.energy-=5; },
+    game:{ type:"timing", cfg:{
+      emoji:"景", title:"外滩拍大片", btn:"咔嚓!",
+      hint:"三轮连拍:每停一次绿区=一张大片(每张心情+3.3),黄区=能看",
+      rounds:3, sweep:1500, g:[44,56], y:[34,66],
+      verdicts:["这张能上首页!","能看","糊了..."],
+      finish:function(s,res){
+        const m = Math.round(7+3.3*res.greens);
+        s.mood += m;
+        log(`在外滩连拍了三轮${res.greens>=2?",出片率高到朋友圈点赞刷屏":",出片率一般"},江风把对岸陆家嘴的灯火吹进心里。<span class="c-pink">心情+${m}</span>`);
+      } } } },
+
+  { key:"gym", name:"夜跑/健身", cost:"精力15", desc:"健康+5~16 · 跑步节奏小游戏",
+    ok:function(s){ return s.energy>=15 && !s.over; },
+    start:function(s){ s.energy-=15; },
+    game:{ type:"timing", cfg:{
+      emoji:"跑", title:"夜跑节奏", btn:"迈!",
+      hint:"五公里踩准节奏:每停一次绿区=一段有效步频(每段健康+2.2),节奏越稳效果越好",
+      rounds:5, sweep:1200, g:[46,54], y:[38,62],
+      verdicts:["步频完美!","还行","岔气了..."],
+      finish:function(s,res){
+        const h = Math.round(5+2.2*res.greens), m = 2+res.greens;
+        s.health += h; s.mood += m;
+        log(`五公里${res.greens>=3?"节奏踩得非常稳":"跑得断断续续"},汗出一身,焦虑轻了一半。<span class="c-good">健康+${h}</span> <span class="c-pink">心情+${m}</span>`);
+      } } } },
+  { key:"cafe", name:"咖啡店发呆", cost:"45元", desc:"心情+6~14 · 拉花小游戏",
+    ok:function(s){ return s.money>=45 && !s.over; },
+    start:function(s){ s.money-=45; },
+    game:{ type:"timing", cfg:{
+      emoji:"咖", title:"拉花时刻", btn:"倒!",
+      hint:"手冲拉花看手感:绿区=完美心形(心情+14 精力+12),黄区=及格,圈外=洒了",
+      rounds:1, sweep:1800, g:[41,59], y:[29,71],
+      verdicts:["完美的心形!","能喝","洒了一半..."],
+      finish:function(s,res){
+        if(res.last==="perfect"){ s.mood+=14; s.energy=clamp(s.energy+12,0,100);
+          log(`拉花拉出了完美的心形,咖啡师都回头看了一眼。<span class="c-bad">-¥45</span> <span class="c-pink">心情+14</span> <span class="c-cyan">精力+12</span>`); }
+        else if(res.last==="good"){ s.mood+=10; s.energy=clamp(s.energy+8,0,100);
+          log(`在武康路边的咖啡店坐了一下午,看梧桐树影和来往的人。<span class="c-bad">-¥45</span> <span class="c-pink">心情+10</span> <span class="c-cyan">精力+8</span>`); }
+        else{ s.mood+=6; s.energy=clamp(s.energy+5,0,100);
+          log(`拉花手一抖洒了半杯,店员重做了一杯。<span class="c-bad">-¥45</span> <span class="c-pink">心情+6</span> <span class="c-cyan">精力+5</span>`); }
+      } } } },
+  { key:"hospital", name:"去医院", cost:"200元起", desc:"健康+45 · 抢号小游戏",
+    ok:function(s){ return s.money>=200 && !s.over; },
+    game:{ type:"tap", cfg:{
+      title:"挂号抢号", hint:"门诊挂号机在弹号!点普通号抢到当天的号就省挂号费;点错老专家号要补差价(每个+30元)",
+      goods:["挂","药"], badP:.25, badGen:function(){ return "老专家"; },
+      duration:8000, spawn:560, life:1000,
+      scoreFmt:function(h,b){ return "挂号 <b>"+h+"</b> 次"+(b?" · 老专家 <span class='c-bad'>"+b+"</span>":""); },
+      finish:function(s,res){
+        const cost = Math.min(s.money, 200 + res.bads*30 + Math.round((100-s.health)*8));
+        s.money-=cost; s.health=clamp(s.health+45,0,100);
+        log(`挂号${res.hits?"快速搞定,顺带看了点检查":"排了一会儿队,终于轮到了"},医生说别熬夜:<span class="c-bad">-${fmt(cost)}</span> <span class="c-good">健康+45</span>`);
+      } } } },
+  { key:"sleep", name:"睡觉(睡到明早8点)", cost:"免费", desc:"精神值回满 · 精力+35 · 心情+3 · 直接跳到第二天",
+    ok:function(s){ return !s.over; }, start:function(s){
+      const sleptAt = fmtClock(s.hour);
+      s.san = SAN_MAX;
+      s.energy = clamp(s.energy+35,0,100);
+      s.mood = (s.mood||0) + 3;
+      beginNewDay();
+      log(`<span class="c-san">你 ${sleptAt} 钻回被窝,一觉睡到第二天早上 08:00。精神值满血复活。</span>`);
+    } },
+];
+
+// =====================================================================
+// 随机事件
+// =====================================================================
+const EVENTS = [
+  { text:"地铁里有人丢了钱包,你帮忙送到警务室,被谢了一杯奶茶。", money:8, mood:6 },
+  { text:"楼下邻居送你两个肉包子,刚出锅的那种。", food:18, mood:5 },
+  { text:"你帮老奶奶把米袋送上楼,她非要给你一盒咸鸭蛋。", food:22, mood:4 },
+  { text:"外卖小哥闯红灯撞到你,赔了你 50 块。", money:50, health:-8 },
+  { text:"你捡到一张沪A牌照的车钥匙,交给保安亭,失主给了你 30 块。", money:30, mood:6 },
+  { text:"路人问路你指错了,他回来骂了你一顿。", mood:-8 },
+  { text:"你被拉进一个奇怪的理财群,差点被诈骗 500 块,还好被家人骂醒。", money:-30, mood:-6 },
+  { text:"你帮快递小哥搬了一车大件,他塞给你两箱牛奶。", food:30, mood:4 },
+  { text:"晚上被广场舞音乐吵到睡不着,但早上又睡过头迟到。", energy:-12, mood:-6 },
+  { text:"你在徐汇滨江跑步时,被一只小狗绊倒,膝盖擦破。", health:-12, mood:-4 },
+  { text:"出门发现楼下新开了一家早餐店,免费请你吃了一根油条。", food:15, mood:8 },
+  { text:"你坐过站了,多花了 3 块地铁钱。", money:-3, mood:-2 },
+  { text:"你接到一个陌生电话,差点被骗,还好及时挂断。", mood:-8 },
+  { text:"你下班路上看到一只流浪猫,给它买了个罐头。", money:-12, mood:6, food:3 },
+  { text:"你帮同住的程序员合租室友 debug 了三个 bug,他请你吃了一顿烧烤。", food:35, mood:10 },
+  { text:"你去医院复查,医生夸你身体指标好,顺便送你一个口罩。", health:6, mood:4 },
+  { text:"你被一家奶茶店店员认错成老顾客,送你一杯新品。", mood:8 },
+  { text:"地铁里有人给你让座,你感到一阵暖意。", mood:10 },
+  { text:"你收到一条奇怪的短信,让你点链接领红包。", money:-15, mood:-6 },
+  { text:"你在地铁站捡到一袋咖啡豆,磨出来味道还行。", mood:4 },
+  { text:"你和邻居为了楼道堆物吵架,他甩了你一脸鸡蛋。", food:-15, mood:-12 },
+  { text:"上海下了一场突如其来的大暴雨,你在便利店门口躲了半小时。", mood:-6 },
+  { text:"你走错厕所,被一个大哥骂了出来。", mood:-8 },
+  { text:"你顺手扶了一下小区门口摔倒的外卖箱,外卖员谢了你。", mood:6 },
+  { text:"你在便利店买咖啡时抽中了再来一瓶。", mood:6 },
+  { text:"家里漏水泡了一双新鞋,你蹲在地上擦了半小时。", mood:-12 },
+  { text:"你帮公司前台姑娘修好电脑,她请你喝了一杯喜茶。", mood:10 },
+];
+const EV_TOTAL = 100;
+
+function rollEvent(){
+  const e = EVENTS[Math.floor(Math.random()*EVENTS.length)];
+  if(e.money){ s.money = Math.max(0, s.money + e.money); }
+  if(e.food){ s.food = clamp(s.food + e.food, 0, 200); }
+  if(e.mood){ s.mood = clamp(s.mood + e.mood, -100, 100); }
+  if(e.health){ s.health = clamp(s.health + e.health, 0, 100); }
+  if(e.energy){ s.energy = clamp(s.energy + e.energy, 0, 100); }
+  log(`<span class="c-warn">[突发事件]</span> ${e.text}`);
+}
+
+// =====================================================================
+// 渲染
+// =====================================================================
+const dayTarget = 100;
+const bizName = { delivery:"外卖跑腿", stall:"摆摊", shop:"小卖部", tutor:"家教中介" };
+
+function bizTag(s){
+  if(!s.biz) return `<span class="tag tag-mute">无业</span>`;
+  const lock = s.biz.lock?"🔒 ":"";
+  return `<span class="tag tag-biz">${lock}${bizName[s.biz.type]||s.biz.type}</span>`;
+}
+
+function whereOptions(){ return ""; }
+
+function eventLine(){
+  if(s.day>dayTarget) return `<div class="event-line">📅 第 ${s.day} 天 (已是结局日)</div>`;
+  if(s.eventDone) return "";
+  const w = WEATHER[s.day % WEATHER.length];
+  return `<div class="event-line">📅 第 ${s.day} 天 · ${w.icon} ${w.name}</div>`;
+}
+
+function statBar(label, value, max, color){
+  const pct = Math.round(value/max*100);
+  return `<div class="bar-row"><span class="bar-label">${label}</span><div class="bar"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div><span class="bar-num">${value}/${max}</span></div>`;
+}
+
+function render(){
+  if(!s) return;
+  const here = LOCS.find(l=>l.key===s.loc) || { name:"未知", lines:[], x:0, y:0 };
+  // loc-banner
+  const lb = $("#loc-banner"); if(lb){
+    const canvas = lb.querySelector("canvas");
+    lb.innerHTML = "";
+    if(canvas) lb.appendChild(canvas);
+    const text = document.createElement("div");
+    text.style.minWidth = "0";
+    text.innerHTML = `<div id="loc-name">${here.name}</div><div id="loc-lines">${here.lines.map(id=>'<span class="line-pill" style="--lc:'+METRO_LINES[id].color+'">'+METRO_LINES[id].name+'</span>').join(" ")}</div>`;
+    lb.appendChild(text);
+    if(typeof drawLocScene==="function") drawLocScene(s.loc);
+  }
+  // HUD
+  if($("#day-num")) $("#day-num").textContent = s.day;
+  if($("#phase-name")) $("#phase-name").textContent = fmtClock(s.hour)+" · "+phaseOfHour(s.hour);
+  if($("#cash")) $("#cash").textContent = fmt(s.money);
+  // 状态条
+  const setBar = (key, val, max) => {
+    const b = $("#b-"+key); const v = $("#v-"+key);
+    if(b) b.style.width = Math.max(0,Math.min(100,Math.round(val/max*100)))+"%";
+    if(v) v.textContent = Math.round(val);
+  };
+  setBar("health", s.health, 100);
+  setBar("food", s.food, 100);
+  setBar("mood", s.mood>=0?s.mood:0, 100);  // mood 可为负,显示绝对值截断
+  setBar("energy", s.energy, 100);
+  setBar("skill", s.skill, 100);
+  // SAN 精神值:独立颜色,深紫/青色
+  const sanBar = $("#b-san"); const sanVal = $("#v-san");
+  if(sanBar) sanBar.style.width = Math.max(0,Math.min(100,s.san))+"%";
+  if(sanVal) sanVal.textContent = Math.round(s.san);
+  const sanRow = sanBar ? sanBar.closest(".bar-row") : null;
+  if(sanRow){
+    sanRow.style.display = "";
+    if(s.san <= 20) sanRow.classList.add("san-danger");
+    else if(s.san <= 50) sanRow.classList.add("san-warn");
+    else sanRow.classList.remove("san-danger","san-warn");
+  }
+  // biz-status
+  const bs = $("#biz-status"); if(bs) bs.innerHTML = bizTag(s);
+  // rent-info: 显示下次交租日与已交期数
+  const ri = $("#rent-info");
+  if(ri){
+    const rentNow = RENT + (s.hasShop ? 2000 : 0);
+    const nextRent = (s.rentPaid||0)*30 + 30;
+    ri.innerHTML = `下次 第${Math.min(nextRent,101)}天 · <b>${fmt(rentNow)}</b>${s.hasShop?" (含门店+2000)":""} · 已交${s.rentPaid||0}期`;
+  }
+  // event-line(这里显示天气)
+  if($("#event-line")) $("#event-line").innerHTML = "";
+  renderActions();
+  renderLog();
+}
+
+function renderActions(){
+  const cur = s.loc;
+  const list = ACTIONS.filter(a=>{
+    if(a.key==="metro" || a.key==="market") return true;
+    if(a.whereOnly && !a.whereOnly.includes(cur)) return false;
+    return true;
+  });
+  $("#actions").innerHTML = list.map(a=>{
+    const ok = a.ok(s, cur);
+    const costTxt = a.cost ? `<span class="act-cost">${a.cost}</span>` : "";
+    const descTxt = typeof a.desc === "function" ? a.desc(s) : a.desc;
+    return `<button class="act" data-key="${a.key}" ${ok?"":"disabled"}>
+      <div class="act-name">${a.name}${costTxt}</div>
+      <div class="act-desc">${descTxt||""}</div>
+    </button>`;
+  }).join("");
+  $("#actions").onclick = (e)=>{
+    const btn = e.target.closest(".act"); if(!btn) return;
+    const key = btn.dataset.key;
+    doAction(key);
+  };
+}
+
+function renderLog(){
+  // log() 已直接往 #log DOM 里追加了元素,这里只做滚动保持
+  const el = $("#log");
+  el.scrollTop = el.scrollHeight;
+}
+
+// =====================================================================
+// 核心流程
+// =====================================================================
+function doAction(actionKey){
+  const cur = s.loc;
+  const a = ACTIONS.find(x=>x.key===actionKey);
+  if(!a) return;
+  if(!a.ok(s, cur)){ log(`<span class="c-bad">不能执行:条件不足</span>`); return; }
+  if(actionKey==="metro"){ openMetro(); return; }
+  if(actionKey==="market"){ openMarket(); return; }
+  if(actionKey==="sleep"){
+    // 必须下午 17:00 以后(到凌晨 5 点前)才能睡觉
+    if(!(s.hour>=17 || s.hour<5)){ toast("还睡不着!17:00 以后才能睡觉"); return; }
+    if(a.start){ a.start(s); }
+    advance(); return;
+  }
+  if(a.start){ a.start(s); }
+  // 摆摊走专属的摊位实况流程
+  if(a.game && a.game.type==="stall"){ launchStallFlow(); return; }
+  if(!a.game){ advance(); return; }
+  launchMinigame(a);
+}
+
+function launchMinigame(a){
+  const cfg = a.game.cfg;
+  cfg.title = cfg.title || a.name;
+  MG_GEN = s.gen;
+  MG_ACTION = a;
+  // 不重建 innerHTML,复用 HTML 已有的 #mg-stage/#mg-round/#mg-hint/#mg-btn 结构
+  // 否则 playTiming/playTap/playQuiz 写入 #mg-stage 会失败
+  $("mg-title").textContent = (cfg.emoji||"") + " " + cfg.title;
+  $("mg-round").textContent = "";
+  $("mg-hint").innerHTML = cfg.hint || "";
+  const btn = $("mg-btn");
+  btn.style.display = "";
+  btn.disabled = false;
+  btn.textContent = cfg.btn || "出手！";
+  $("mg-stage").innerHTML = "";
+  $("mg-overlay").style.display = "flex";
+  btn.onclick = ()=>{
+    if(MG_GEN !== s.gen) return;
+    btn.disabled = true;
+    btn.textContent = "进行中...";
+    $("mg-stage").innerHTML = "";
+    if(a.game.type==="timing") playTiming(cfg, finishMinigame);
+    else if(a.game.type==="tap") playTap(cfg, finishMinigame);
+    else if(a.game.type==="quiz") playQuiz(cfg, finishMinigame);
+  };
+}
+
+function finishMinigame(res){
+  if(MG_GEN==null || MG_ACTION==null) return;
+  if(MG_GEN !== s.gen){ MG=null; MG_GEN=null; MG_ACTION=null; $("#mg-overlay").style.display="none"; return; }
+  const a = MG_ACTION;
+  // finish 在 game.cfg 里
+  if(a.game && a.game.cfg && a.game.cfg.finish){ a.game.cfg.finish(s, res||{}); }
+  MG=null; MG_GEN=null; MG_ACTION=null;
+  $("#mg-overlay").style.display = "none";
+  advance();
+}
+
+function advance(){
+  render();
+  if(s.over){ gameOver(); return; }
+  if(s.day > dayTarget){
+    ending();
+    return;
+  }
+}
+
+function nightSettle(){
+  if(s.over) return;
+
+  // ---- 1. 饱食与健康(原版核心结算) ----
+  if(!s.ateToday){
+    s.hungryDays = (s.hungryDays||0) + 1;
+    if(s.hungryDays >= 2){
+      // 连续两天没吃饭 → 强制代餐扣费
+      const fee = 50;
+      s.money -= fee;
+      s.food = clamp(s.food + 45, 0, 100);
+      s.health = clamp(s.health + 3, 0, 100);
+      log(`🛎 你已经<b>连续两天没吃饭</b>,饿到眼前发黑。平台检测到你快倒了,强制替你代付了一份救急餐:<span class="c-bad">强制扣费 ¥${fee}</span> <span class="c-good">饱食+45</span>${s.money<0?"(余额不足,已记账倒欠)":""}。`,"c-bad");
+      s.hungryDays = 0;
+    }else{
+      s.food -= 22;
+      log(`今天一口饭都没吃,胃在抗议。<span class="c-bad">饱食-22</span> <span class="c-dim">(再饿一天就要被强制代餐扣费了!)</span>`,"c-dim");
+    }
+  }else{
+    s.hungryDays = 0;
+    s.food -= 8;
+  }
+  if(s.food < 0){
+    s.health -= Math.abs(s.food) > 10 ? 15 : 8;
+    s.food = 0;
+    log(`饿到眼冒金星,健康受到重创。<span class="c-bad">健康下降</span>`,"c-bad");
+  }
+  s.mood -= 2;
+  s.energy = clamp(s.energy + 45, 0, 100);
+  s.health = clamp(s.health + 4, 0, 100);
+  if(s.food < 25) s.health -= 4;
+  if(s.energy < 15) s.health -= 3;
+
+  // ---- 2. 房租(每 30 天一次) ----
+  const rent = RENT + (s.hasShop ? 2000 : 0);
+  if(s.day % 30 === 0){
+    s.money -= rent;
+    s.rentPaid = (s.rentPaid||0) + 1;
+    if(s.money >= 0){
+      log(`🏠 <b>交房租日:</b>${fmt(rent)} 转给房东${s.hasShop?"(出租屋+门店)":""},对方回了个『收到』。<span class="c-bad">-${fmt(rent)}</span>`,"c-gold");
+    }else{
+      log(`🏠 <b>交房租日:</b>${fmt(rent)} 转出去后余额见底还倒欠,房东说下不为例。<span class="c-bad">-${fmt(rent)}</span>`,"c-bad");
+    }
+  }
+  // 房租预警
+  if(s.day % 30 === 29 && s.money < rent){
+    log(`<span class="c-warn">⚠ 明天就要交房租 ${fmt(rent)},你的钱还不够!</span>`);
+  }
+
+  // ---- 3. 摆摊当日收入 ----
+  if(s.biz && s.biz.type==="stall"){
+    const earn = s.biz.stallEarn||0;
+    if(earn>0){
+      s.money += earn;
+      log(`摆摊今日收入: <span class="c-gold">+${fmt(earn)}</span>`);
+      s.biz.stallEarn = 0;
+    }
+  }
+
+  // ---- 4. 技能成长 + 随机事件 ----
+  if(s.skill < 100) s.skill = clamp(s.skill + 1, 0, 100);
+  if(!s.eventDone && Math.random() < 0.45){
+    rollEvent();
+    s.eventDone = true;
+  }
+
+  // ---- 5. 上下限收敛 ----
+  s.health = clamp(s.health, 0, 100);
+  s.food   = clamp(s.food,   0, 100);
+  s.mood   = clamp(s.mood,   0, 100);
+  s.energy = clamp(s.energy, 0, 100);
+  s.san    = clamp(s.san,    0, SAN_MAX);
+  s.maxMoney = Math.max(s.maxMoney||0, s.money);
+  s.ateToday = false; s.workedToday = false;
+
+  // ---- 6. 预警 ----
+  if(s.health < 25 && !s.over) log(`<span class="c-bad">⚠ 身体已经亮起红灯,再去医院看看吧。</span>`);
+  if(s.mood   < 25 && !s.over) log(`<span class="c-bad">⚠ 感觉自己快撑不下去了,去外滩吹吹风、或者吃顿好的吧。</span>`);
+  if(s.food   < 20 && !s.over) log(`<span class="c-bad">⚠ 肚子饿得咕咕叫,再不吃饭要出人命的。</span>`);
+  if(s.san    < 30 && !s.over) log(`<span class="c-warn">⚠ 精神值只剩 ${Math.round(s.san)},回出租屋睡一觉吧。</span>`);
+
+  // ---- 7. 死因判定 ----
+  if(s.health <= 0){ s.over=true; s.overReason="累垮了"; return; }
+  if(s.mood   <= 0){ s.over=true; s.overReason="心态崩了"; return; }
+  if(s.san    <= 0){ s.over=true; s.overReason="精神崩溃"; return; }
+  if(s.money  < -1500){ s.over=true; s.overReason="负债累累撑不下去了"; return; }
+}
+
+// =====================================================================
+// 结局
+// =====================================================================
+function finalTrain(){
+  showEnd(`<div class="end-title">🚄 搭上高铁回家</div>
+    <div class="end-body">你在第 ${s.day} 天终于攒够了回家的车票钱。<br>
+    上海的霓虹灯在车窗外渐渐变小,你想起了这 100 天里:<br>
+    卖出去的倒爷货、做过的家教、跑过的腿、熬过的夜。<br><br>
+    <span class="c-gold">最终余额:${fmt(s.money)}</span><br><br>
+    <i>这不是一个失败的故事,只是你选择不再漂泊。</i></div>`);
+}
+
+function finalPlane(){
+  showEnd(`<div class="end-title">✈️ 飞往下一站</div>
+    <div class="end-body">你没有回老家,你飞去了另一个城市。<br>
+    浦东机场的航班一架接一架,你买了最近一班的机票。<br>
+    <span class="c-gold">最终余额:${fmt(s.money)}</span><br><br>
+    <i>上海不适合所有人,但上海让你学会了如何重新开始。</i></div>`);
+}
+
+function finalStay(){
+  showEnd(`<div class="end-title">🏠 留在上海</div>
+    <div class="end-body">你决定留下来。<br>
+    在张江租了间小房子,开始做自由职业,偶尔去苏州河散步。<br>
+    <span class="c-gold">最终余额:${fmt(s.money)}</span><br><br>
+    <i>这座城市未必接纳你,但你已经在它的褶皱里找到了位置。</i></div>`);
+}
+
+function gameOver(){
+  stopClock();
+  s.over = true;
+  const r = s.overReason || "倒下";
+  showEnd(`<div class="end-title">💀 游戏结束</div>
+    <div class="end-body">你在第 <b>${s.day}</b> 天${r}。<br><br>
+    <span class="c-gold">最终余额:${fmt(s.money)}</span><br><br>
+    <i>${getRandomQuote()}</i></div>`);
+}
+
+function ending(){
+  stopClock();
+  if(s.money >= 8000) finalPlane();
+  else if(s.money >= 3500) finalTrain();
+  else finalStay();
+}
+
+function getRandomQuote(){
+  const Q = [
+    "上海是一座会吸走你时间、也回报你经验的城市。",
+    "愿你漂泊半生,归来仍有热饭。",
+    "在 1600 万人里,你并不孤独。",
+    "再坚持一下,天总会亮。",
+    "别忘了吃饭。"
+  ];
+  return Q[Math.floor(Math.random()*Q.length)];
+}
+
+function showEnd(html){
+  const es = $("#end-screen");
+  // 提取标题和正文内容(去掉外层 div,避免嵌套样式)
+  const titleM = html.match(/<div class="end-title">([\s\S]*?)<\/div>/);
+  const bodyM  = html.match(/<div class="end-body">([\s\S]*?)<\/div>/);
+  const titleEl = $("#end-title"), descEl = $("#end-desc"), statsEl = $("#end-stats"), emoEl = $("#end-emoji");
+  let titleTxt = titleM ? titleM[1] : html;
+  // 从标题里提取开头的 emoji 放到大字位置
+  let emoji = "🏙️";
+  const em = titleTxt.match(/^\s*([\u{1F300}-\u{1FAFF}\u2600-\u27BF\uFE0F\u200D]+)\s*(.*)$/u);
+  if(em){ emoji = em[1]; titleTxt = em[2]; }
+  if(titleEl) titleEl.textContent = titleTxt;
+  if(emoEl)   emoEl.textContent = emoji;
+  if(descEl)  descEl.innerHTML  = bodyM  ? bodyM[1]  : "";
+  // 没有额外统计数据时隐藏面板,避免空框
+  if(statsEl){ statsEl.innerHTML = ""; statsEl.style.display = "none"; }
+  // 隐藏游戏屏,只显示结局屏
+  $("#game-screen").classList.remove("active");
+  $("#start-screen").classList.remove("active");
+  es.classList.add("active");
+  const restart = $("#restart");
+  if(restart) restart.onclick = doRestart;
+}
+
+// =====================================================================
+// 启动 / 重启
+// =====================================================================
+function startGame(){
+  resetAllMinigames();
+  s = newState();
+  $("#start-screen").classList.remove("active");
+  $("#end-screen").classList.remove("active");
+  $("#game-screen").classList.add("active");
+  s.gen = (s.gen||0)+1;
+  buildMetroSVG("metro-full");
+  renderMetroLegend("metro-legend");
+  log(`欢迎来到上海。你拎着行李箱从火车站出来,口袋里只有 ${fmt(s.money)}。<span class="c-dim">[版本 v4.04 · 产地限定进货 · 行情短信版]</span>`);
+  log(`<span class="c-dim">时间规则:1 真实分钟 = 1 游戏小时。每天 08:00 醒来,18:00 天黑后不睡就开始掉精神值,归零就 GG。</span>`);
+  render();
+  startClock();
+}
+
+function resetAllMinigames(){
+  MG=null; SG=null;
+  const hide = id => { const e = $("#"+id); if(e){ e.classList.remove("show"); e.style.display = ""; } };
+  hide("mg-overlay"); hide("stall-overlay"); hide("market-modal"); hide("metro-modal");
+}
+
+function doRestart(){
+  resetAllMinigames();
+  stopClock();
+  if(s){ s.gen = (s.gen||0)+1; }
+  s = newState();
+  $("#start-screen").classList.remove("active");
+  $("#end-screen").classList.remove("active");
+  $("#game-screen").classList.add("active");
+  s.gen = (s.gen||0)+1;
+  buildMetroSVG("metro-full");
+  renderMetroLegend("metro-legend");
+  log(`<span class="c-warn">重新开始,新的一百天。</span>`);
+  log(`<span class="c-dim">时间规则:1 真实分钟 = 1 游戏小时。17:00 后才能睡觉,18:00 天黑后不睡就开始掉精神值。连续两天不吃饭会被强制代餐扣费。</span>`);
+  toast("🔄 重新开始");
+  render();
+  startClock();
+}
+
+function toast(t){
+  const el = $("#toast");
+  el.textContent = t;
+  el.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>el.classList.remove("show"), 1200);
+}
+
+// =====================================================================
+// 初始化
+// =====================================================================
+function init(){
+  try{ drawShikumen("shikumen"); }catch(e){}
+  try{ buildMetroSVG("metro-mini"); }catch(e){}
+  try{ renderMetroLegend("metro-legend"); }catch(e){}
+  try{ renderHomeList(); }catch(e){}
+  const startBtn = $("#start-btn");
+  if(startBtn) startBtn.onclick = ()=>{
+    const pick = document.querySelector('input[name="home"]:checked');
+    if(pick && HOMES[+pick.value]){ s = newState(); s.home = HOMES[+pick.value].name; selHome = +pick.value; }
+    startGame();
+  };
+  const restartBtn = $("#btn-restart");
+  if(restartBtn) restartBtn.onclick = doRestart;
+  const endRestart = $("#restart");
+  if(endRestart) endRestart.onclick = doRestart;
+  const tutBtn = $("#btn-tut"); const tutClose = $("#btn-tut-close");
+  if(tutBtn) tutBtn.onclick = ()=>{ const m=$("#tutorial-modal"); if(m) m.style.display="flex"; };
+  if(tutClose) tutClose.onclick = ()=>{ const m=$("#tutorial-modal"); if(m) m.style.display="none"; };
+  document.querySelectorAll("[data-close]").forEach(el=>{
+    el.onclick = ()=>{ const m = document.getElementById(el.dataset.close); if(m) m.style.display = "none"; };
+  });
+}
+
+window.addEventListener("DOMContentLoaded", init);
+
+</script>
+</body>
+</html>
